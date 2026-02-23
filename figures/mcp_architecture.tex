@@ -1,0 +1,92 @@
+% Standalone TikZ source for the MCP architecture diagram.
+% Compile with: pdflatex mcp_architecture.tex
+\documentclass[tikz,border=8pt]{standalone}
+\usepackage{tikz}
+\usetikzlibrary{shapes.rounded, arrows.meta, positioning, fit, backgrounds}
+
+\definecolor{hostbg}{RGB}{214,234,248}
+\definecolor{clientbg}{RGB}{213,245,227}
+\definecolor{serverbg}{RGB}{253,235,208}
+\definecolor{protobg}{RGB}{240,243,244}
+\definecolor{border}{RGB}{44,62,80}
+\definecolor{arrowcol}{RGB}{93,109,126}
+
+\tikzset{
+  mcpbox/.style={
+    draw=border, line width=1.2pt,
+    rounded corners=4pt,
+    minimum width=2.8cm, minimum height=1.0cm,
+    align=center, font=\small\bfseries
+  },
+  llmbox/.style={mcpbox, fill=white!90!hostbg, minimum width=3.2cm},
+  clientbox/.style={mcpbox, fill=clientbg},
+  serverbox/.style={mcpbox, fill=serverbg, font=\small\bfseries},
+  subtxt/.style={font=\footnotesize\itshape, text=arrowcol},
+  mcparrow/.style={<->, >=Stealth, thick, color=arrowcol},
+  protoband/.style={fill=protobg, draw=border!40, rounded corners=3pt, opacity=0.85}
+}
+
+\begin{document}
+\begin{tikzpicture}[node distance=1.2cm]
+
+  % LLM
+  \node[llmbox] (llm) {LLM\\[2pt]\textit{\scriptsize Large Language Model}};
+
+  % Clients
+  \node[clientbox, below left=1.4cm and 2.2cm of llm]  (ca) {MCP Client A};
+  \node[clientbox, below=1.8cm of llm]                  (cb) {MCP Client B};
+  \node[clientbox, below right=1.4cm and 2.2cm of llm] (cc) {MCP Client C};
+
+  % Servers
+  \node[serverbox, below=1.6cm of ca] (sa)
+        {MCP Server A\\[2pt]\textit{\scriptsize Filesystem / Git}};
+  \node[serverbox, below=1.6cm of cb] (sb)
+        {MCP Server B\\[2pt]\textit{\scriptsize Database / Search}};
+  \node[serverbox, below=1.6cm of cc] (sc)
+        {MCP Server C\\[2pt]\textit{\scriptsize Cloud / API}};
+
+  % LLM -> Clients
+  \draw[mcparrow] (llm.south west) -- (ca.north)
+        node[midway, subtxt, xshift=-4pt] {\tiny tool calls};
+  \draw[mcparrow] (llm.south)      -- (cb.north);
+  \draw[mcparrow] (llm.south east) -- (cc.north);
+
+  % Protocol band (drawn before client-server arrows so it sits behind)
+  \begin{pgfonlayer}{background}
+    \node[protoband,
+          fit=(ca.south)(cc.south)(sa.north)(sc.north),
+          inner ysep=6pt, inner xsep=4pt] (band) {};
+  \end{pgfonlayer}
+  \node[font=\scriptsize, text=arrowcol, anchor=center]
+        at (band.center)
+        {MCP Protocol Layer \quad JSON-RPC 2.0 \quad Transport: stdio $|$ HTTP+SSE};
+
+  % Client -> Server
+  \draw[mcparrow] (ca.south) -- (sa.north);
+  \draw[mcparrow] (cb.south) -- (sb.north);
+  \draw[mcparrow] (cc.south) -- (sc.north);
+
+  % Host boundary
+  \begin{pgfonlayer}{background}
+    \node[draw=border!70!blue, line width=1.8pt, rounded corners=6pt,
+          fill=hostbg, fill opacity=0.30,
+          fit=(llm)(ca)(cb)(cc)(sa)(sb)(sc)(band),
+          inner sep=14pt, label={[font=\small\bfseries, text=border!70!blue]above:
+            Host \quad (e.g.\ Claude Desktop,\ IDE Plugin,\ Agent Framework)}] {};
+  \end{pgfonlayer}
+
+  % Legend
+  \matrix[draw=border, rounded corners, fill=white, inner sep=5pt,
+          below right=0.4cm and -1cm of sc,
+          row sep=4pt, column sep=4pt,
+          font=\scriptsize] (leg) {
+    \node[mcpbox, fill=hostbg, minimum width=0.5cm, minimum height=0.35cm,
+          font=\scriptsize] {}; & \node {Host environment}; \\
+    \node[mcpbox, fill=clientbg, minimum width=0.5cm, minimum height=0.35cm,
+          font=\scriptsize] {}; & \node {MCP Client}; \\
+    \node[mcpbox, fill=serverbg, minimum width=0.5cm, minimum height=0.35cm,
+          font=\scriptsize] {}; & \node {MCP Server}; \\
+  };
+
+\end{tikzpicture}
+\end{document}
