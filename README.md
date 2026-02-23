@@ -10,15 +10,40 @@ This paper investigates the Model Context Protocol (MCP), an open standard intro
 
 ```
 mcppaper/
-├── main.tex          # Main LaTeX document
-├── references.bib    # Bibliography
-├── sections/         # Individual paper sections
-└── figures/          # Diagrams and figures
+├── main.tex               # Main LaTeX document (all sections inline)
+├── source.tex             # Original IEEEtran template (reference only)
+└── figures/
+    ├── mcp_architecture.pdf  # Architecture diagram (included in paper)
+    ├── mcp_architecture.png  # Same diagram in raster format
+    ├── mcp_architecture.tex  # Standalone TikZ source
+    └── generate_architecture.py  # Script to regenerate diagram
 ```
 
-## Building
+## Compiling to PDF
 
-To compile the paper, ensure you have a LaTeX distribution installed (e.g., TeX Live or MiKTeX), then run:
+### Prerequisites
+
+Install a LaTeX distribution:
+
+- **macOS**: [MacTeX](https://www.tug.org/mactex/) — `brew install --cask mactex`
+- **Linux**: TeX Live — `sudo apt install texlive-full`
+- **Windows**: [MiKTeX](https://miktex.org/)
+
+### Option 1 — latexmk (recommended)
+
+```bash
+latexmk -pdf main.tex
+```
+
+To clean all build artifacts afterwards:
+
+```bash
+latexmk -C
+```
+
+### Option 2 — Manual pdflatex
+
+Run three passes to resolve cross-references and citations:
 
 ```bash
 pdflatex main.tex
@@ -27,10 +52,14 @@ pdflatex main.tex
 pdflatex main.tex
 ```
 
-Or using `latexmk`:
+The output is **`main.pdf`** in the same directory.
+
+### Regenerating the architecture diagram
+
+The pre-rendered figure is already included in `figures/`. To regenerate it (requires `matplotlib`):
 
 ```bash
-latexmk -pdf main.tex
+python3 figures/generate_architecture.py
 ```
 
 ## Topics Covered
