@@ -1,2 +1,14 @@
 papers/*.pdf
 .DS_Store
+
+# LaTeX compilation artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+main.pdf
