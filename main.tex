@@ -88,13 +88,13 @@ ehtesham:survey2025}.
 This paper addresses the following research questions:
 
 \begin{description}
-  \item[RQ1 (Architecture)] How do MCP's core primitives (Tools,
+  \item[{RQ1 (Architecture)}] How do MCP's core primitives (Tools,
     Resources, Prompts) diverge from the ``Agent Card'' and capability
     negotiation models of A2A and ACP?
-  \item[RQ2 (Security \& State)] How does MCP's stateful JSON-RPC session
+  \item[{RQ2 (Security \& State)}] How does MCP's stateful JSON-RPC session
     model impact security boundaries compared to stateless REST-based
     function calling~\cite{hou:mcpsecurity2025}?
-  \item[RQ3 (Convergence)] Can these protocols coexist? Is there evidence
+  \item[{RQ3 (Convergence)}] Can these protocols coexist? Is there evidence
     for a layered ``TCP/IP moment'' for the internet of agents?
 \end{description}
 
@@ -181,13 +181,13 @@ This section addresses the ``Future Work'' gap by synthesizing the
 protocols into a layered model (the ``TCP/IP'' analogy):
 
 \begin{description}
-  \item[Layer 3 --- Collaboration (``The Social Layer'')] \textbf{A2A /
-    ACP.} Agents talking to Agents. Delegating high-level goals (``Plan a
-    trip'')~\cite{google:a2a2024,ibm:acp2024}.
-  \item[Layer 2 --- Context \& Tools (``The Hands \& Eyes'')] \textbf{MCP.}
-    Agents talking to Data/Tools. Executing specific atomic actions
-    (``Query database,'' ``Read file'')~\cite{anthropic:mcp2024}.
-  \item[Layer 1 --- Transport] HTTP / SSE / JSON-RPC.
+  \item[{Layer 3 --- Collaboration}] \textbf{A2A / ACP} (``The Social
+    Layer''). Agents talking to Agents. Delegating high-level goals
+    (``Plan a trip'')~\cite{google:a2a2024,ibm:acp2024}.
+  \item[{Layer 2 --- Context \& Tools}] \textbf{MCP} (``The Hands \&
+    Eyes''). Agents talking to Data/Tools. Executing specific atomic
+    actions (``Query database,'' ``Read file'')~\cite{anthropic:mcp2024}.
+  \item[{Layer 1 --- Transport}] HTTP / SSE / JSON-RPC.
 \end{description}
 
 MCP and A2A are complementary. An A2A agent (the high-level planner)
