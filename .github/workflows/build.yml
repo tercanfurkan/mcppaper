@@ -25,10 +25,15 @@ jobs:
           name: paper
           path: main.pdf
 
+      - name: Prepare Pages directory
+        run: |
+          mkdir _site
+          cp main.pdf _site/
+          cp index.html _site/
+
       - name: Deploy PDF to GitHub Pages
         if: github.event_name == 'workflow_dispatch'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
-          include_files: main.pdf
+          publish_dir: _site
