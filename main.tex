@@ -56,7 +56,7 @@ reveals that MCP's persistent, stateful connection model (JSON-RPC) offers
 superior context management for local-first and high-fidelity tool
 use~\cite{hou:mcpsecurity2025,maloyan:breaking2026}, whereas A2A excels
 in decentralized, trust-based task delegation between autonomous
-entities~\cite{ehtesham:survey2025}. We propose a unified ``Agent
+entities~\cite{ehtesham:survey2025,hou:mcpsecurity2025}. We propose a unified ``Agent
 Protocol Stack,'' arguing that MCP and A2A are complementary
 layers---MCP as the standard for \emph{tool execution} and A2A for
 \emph{agent collaboration}---rather than mutually exclusive
@@ -142,7 +142,7 @@ This paper addresses the following research questions:
     ``active execution'' (Tools)~\cite{hou:mcpsecurity2025,ehtesham:survey2025}.
   \item \emph{Peer-Delegation (A2A/ACP):} High-level task handoff,
     asynchronous event loops, and trust-based capability negotiation
-    between autonomous peers~\cite{ehtesham:survey2025}.
+    between autonomous peers~\cite{ehtesham:survey2025,hou:mcpsecurity2025}.
 \end{itemize}
 
 \subsection{Comparison Matrix}
@@ -194,7 +194,7 @@ analogy):
 \begin{itemize}
   \item \textbf{Layer 3 --- Collaboration} (``The Social Layer''):
     \textbf{A2A / ACP.} Agents talking to Agents. Delegating high-level
-    goals (``Plan a trip'')~\cite{ehtesham:survey2025}.
+    goals (``Plan a trip'')~\cite{ehtesham:survey2025,hou:mcpsecurity2025}.
   \item \textbf{Layer 2 --- Context \& Tools} (``The Hands \& Eyes''):
     \textbf{MCP.} Agents talking to Data/Tools. Executing specific atomic
     actions (``Query database,'' ``Read
@@ -219,7 +219,7 @@ using \emph{MCP Servers}~\cite{mitra:stack2026}.
     (Claude, IDEs, 5000+
     servers)~\cite{oribe:mcp2025}, A2A provides necessary enterprise
     features like auditability and complex negotiation that MCP currently
-    lacks~\cite{ehtesham:survey2025}.
+    lacks~\cite{hou:mcpsecurity2025}.
   \item \textbf{Recommendation:} Developers should use MCP for
     \emph{vertical} integration (connecting an agent to a database) and
     A2A for \emph{horizontal} integration (connecting a travel agent to a
