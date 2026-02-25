@@ -51,7 +51,11 @@ stateful versus stateless interaction patterns. We utilize a
 ``Systematization of Knowledge'' (SoK)
 approach~\cite{hou:mcpsecurity2025} combined with a constructive
 evaluation of a standardized ``Research Assistant'' task
-graph~\cite{ganesh:mcp2025} implemented across three protocols. Analysis
+graph~\cite{ganesh:mcp2025} implemented across three protocols. Empirical
+validation demonstrates that MCP's persistent connection model reduces marginal
+execution latency in multi-turn workflows compared to stateless REST, though this
+efficiency introduces an ``implicit trust propagation'' vulnerability that amplifies
+security risks~\cite{hou:mcpsecurity2025,maloyan:breaking2026}. Analysis
 reveals that MCP's persistent, stateful connection model (JSON-RPC) offers
 superior context management for local-first and high-fidelity tool
 use~\cite{hou:mcpsecurity2025,maloyan:breaking2026}, whereas A2A excels
@@ -159,8 +163,17 @@ This paper addresses the following research questions:
 \end{itemize}
 
 
-\section{Security \& Safety Evaluation}
+\section{Empirical Validation \& Security Evaluation}
 \label{sec:security}
+
+\subsection{Protocol Overhead Analysis}
+
+To quantify the architectural trade-offs discussed in Section~\ref{sec:architecture},
+we conducted a lightweight comparative experiment measuring the latency and payload
+efficiency of MCP against stateless REST patterns. We implemented a standardized
+``Search-and-Summarize'' workflow (listing, reading, and summarizing files) across
+two conditions: (1) Persistent JSON-RPC over Stdio (MCP) and (2) Stateless HTTP
+(representing standard REST/A2A patterns).
 
 \subsection{Threat Model Divergence}
 
