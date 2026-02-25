@@ -39,23 +39,28 @@ Model Context Protocol (MCP) and Agent-to-Agent (A2A) Interaction Patterns}
 \begin{abstract}
 The transition from conversational AI to agentic systems has created an
 ``$M \times N$ integration problem,'' where $M$ models require bespoke
-connectors for $N$ data sources, leading to fragmented infrastructure.
+connectors for $N$ data sources, leading to fragmented
+infrastructure~\cite{oribe:mcp2025,ayyagari:mcpagentic2025}.
 While recent surveys have cataloged emerging standards like MCP,
-Agent-to-Agent (A2A), and Agent Communication Protocol (ACP), there
-remains a lack of rigorous comparison regarding their architectural
-trade-offs. This paper analyzes MCP against its primary
-contenders---Google's A2A protocol and OpenAI's REST-based function
-calling---to determine the specific utility of stateful versus stateless
-interaction patterns. We utilize a ``Systematization of Knowledge'' (SoK)
-approach combined with a constructive evaluation of a standardized
-``Research Assistant'' task graph implemented across three protocols.
-Analysis reveals that MCP's persistent, stateful connection model
-(JSON-RPC) offers superior context management for local-first and
-high-fidelity tool use, whereas A2A excels in decentralized, trust-based
-task delegation between autonomous entities. We propose a unified ``Agent
-Protocol Stack,'' arguing that MCP and A2A are complementary layers---MCP
-as the standard for \emph{tool execution} and A2A for \emph{agent
-collaboration}---rather than mutually exclusive competitors.
+Agent-to-Agent (A2A), and Agent Communication Protocol
+(ACP)~\cite{ehtesham:survey2025}, there remains a lack of rigorous
+comparison regarding their architectural trade-offs. This paper analyzes
+MCP against its primary contenders---Google's A2A protocol and OpenAI's
+REST-based function calling---to determine the specific utility of
+stateful versus stateless interaction patterns. We utilize a
+``Systematization of Knowledge'' (SoK)
+approach~\cite{hou:mcpsecurity2025} combined with a constructive
+evaluation of a standardized ``Research Assistant'' task
+graph~\cite{ganesh:mcp2025} implemented across three protocols. Analysis
+reveals that MCP's persistent, stateful connection model (JSON-RPC) offers
+superior context management for local-first and high-fidelity tool
+use~\cite{hou:mcpsecurity2025,maloyan:breaking2026}, whereas A2A excels
+in decentralized, trust-based task delegation between autonomous
+entities~\cite{ehtesham:survey2025}. We propose a unified ``Agent
+Protocol Stack,'' arguing that MCP and A2A are complementary
+layers---MCP as the standard for \emph{tool execution} and A2A for
+\emph{agent collaboration}---rather than mutually exclusive
+competitors~\cite{mitra:stack2026}.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -72,30 +77,33 @@ Knowledge.
 \IEEEraisesectionheading{\section{Introduction}\label{sec:introduction}}
 
 \IEEEPARstart{T}{he} rapid proliferation of Large Language Models (LLMs)
-has necessitated standardized interfaces for tools and memory. Current
-ad-hoc integrations (manual API wiring, framework-specific wrappers like
-LangChain) are brittle and unscalable~\cite{ehtesham:survey2025,
-anthropic:mcp2024}.
+has necessitated standardized interfaces for tools and
+memory~\cite{hou:mcpsecurity2025}. Current ad-hoc integrations (manual
+API wiring, framework-specific wrappers like LangChain) are brittle and
+unscalable~\cite{hou:mcpsecurity2025}.
 
 Previous works, such as ``A Survey of Agent Interoperability
 Protocols''~\cite{ehtesham:survey2025}, provided a necessary taxonomy of
 the landscape. However, developers currently lack a decision framework for
 choosing between \emph{tool-centric} protocols (MCP) and
 \emph{agent-centric} protocols (A2A) based on architectural constraints
-like latency, security, and state handling~\cite{hou:mcpsecurity2025,
-ehtesham:survey2025}.
+like latency, security, and state
+handling~\cite{hou:mcpsecurity2025,maloyan:breaking2026}.
 
 This paper addresses the following research questions:
 
 \begin{itemize}
-  \item \textbf{RQ1 (Architecture):} How do MCP's core primitives (Tools,
-    Resources, Prompts) diverge from the ``Agent Card'' and capability
-    negotiation models of A2A and ACP?
-  \item \textbf{RQ2 (Security \& State):} How does MCP's stateful JSON-RPC
-    session model impact security boundaries compared to stateless
-    REST-based function calling~\cite{hou:mcpsecurity2025}?
-  \item \textbf{RQ3 (Convergence):} Can these protocols coexist? Is there
-    evidence for a layered ``TCP/IP moment'' for the internet of agents?
+  \item \textbf{RQ1 (Architecture):} How do MCP's core
+    primitives (Tools, Resources, Prompts)~\cite{ehtesham:survey2025}
+    diverge from the ``Agent Card'' and capability negotiation models of
+    A2A and ACP~\cite{ehtesham:survey2025}?
+  \item \textbf{RQ2 (Security \& State):} How does MCP's stateful
+    JSON-RPC session model impact security boundaries compared to
+    stateless REST-based function
+    calling~\cite{maloyan:breaking2026}?
+  \item \textbf{RQ3 (Convergence):} Can these protocols coexist? Is
+    there evidence for a layered ``TCP/IP moment'' for the internet of
+    agents~\cite{mitra:stack2026}?
 \end{itemize}
 
 
@@ -104,13 +112,14 @@ This paper addresses the following research questions:
 
 \begin{itemize}
   \item \textbf{The ``$M \times N$'' Integration Crisis:} Definition of
-    the fragmentation problem where $M$ agents need bespoke connectors for
-    $N$ tools, stifling innovation~\cite{anthropic:mcp2024,
-    ehtesham:survey2025}.
+    the fragmentation problem where $M$ agents need bespoke connectors
+    for $N$ tools, stifling
+    innovation~\cite{oribe:mcp2025,ayyagari:mcpagentic2025}.
   \item \textbf{Precursors:} Brief coverage of the Language Server
     Protocol (LSP), which inspired MCP's client-host-server
-    topology~\cite{anthropic:mcp2024}, and OpenAI Function Calling, which
-    established the de facto REST-based standard~\cite{openai:fc2023}.
+    topology~\cite{reddit:lspmcp,hou:mcpsecurity2025}, and OpenAI
+    Function Calling, which established the de facto REST-based
+    standard~\cite{ehtesham:survey2025,hou:mcpsecurity2025}.
   \item \textbf{Existing Surveys:} Cite ``A Survey of Agent
     Interoperability Protocols''~\cite{ehtesham:survey2025} as the
     foundational text. This paper distinguishes itself by moving from
@@ -127,26 +136,26 @@ This paper addresses the following research questions:
 \begin{itemize}
   \item \emph{Direct Tooling (OpenAI/LangChain):} Ephemeral,
     request-response, stateless. The context must be re-injected every
-    turn~\cite{openai:fc2023}.
+    turn~\cite{hou:mcpsecurity2025,maloyan:breaking2026}.
   \item \emph{Context-First (MCP):} Persistent connections via JSON-RPC
     (over Stdio or SSE). Decouples ``passive context'' (Resources) from
-    ``active execution'' (Tools)~\cite{anthropic:mcp2024,oribe:mcp2025}.
+    ``active execution'' (Tools)~\cite{hou:mcpsecurity2025,ehtesham:survey2025}.
   \item \emph{Peer-Delegation (A2A/ACP):} High-level task handoff,
     asynchronous event loops, and trust-based capability negotiation
-    between autonomous peers~\cite{google:a2a2024,ibm:acp2024}.
+    between autonomous peers~\cite{ehtesham:survey2025}.
 \end{itemize}
 
 \subsection{Comparison Matrix}
 
 \begin{itemize}
   \item \textbf{Transport:} MCP's local-first focus (Stdio) vs.\ A2A's
-    web-first design (HTTP/SSE).
+    web-first design (HTTP/SSE)~\cite{maloyan:breaking2026}.
   \item \textbf{Discovery:} MCP's \texttt{initialize} handshake and
     capability declaration vs.\ A2A's ``Agent Card'' lookup vs.\ OpenAI's
     static schema definition.
   \item \textbf{State Handling:} MCP's server-driven resource updates
     (subscriptions) vs.\ REST's client-driven
-    polling~\cite{li:measurement2025}.
+    polling~\cite{hou:mcpsecurity2025}.
 \end{itemize}
 
 
@@ -157,13 +166,14 @@ This paper addresses the following research questions:
 
 \begin{itemize}
   \item \textbf{MCP Risks:} ``Cross-Primitive Escalation'' (using a
-    read-only Resource to trigger a Tool action) and ``Rug Pulls''
-    (malicious servers changing behavior after trust
-    establishment)~\cite{gaire:sok2025,anon:secanalysis2025}.
+    read-only Resource to trigger a Tool
+    action)~\cite{oribe:mcp2025} and ``Rug Pulls'' (malicious servers
+    changing behavior after trust
+    establishment)~\cite{hou:mcpsecurity2025}.
   \item \textbf{Injection Vectors:} Analysis of ``Indirect Prompt
     Injection'' where malicious content in an MCP Resource (e.g., a
     GitHub issue) hijacks the agent's control
-    flow~\cite{gaire:sok2025,hou:mcpsecurity2025}.
+    flow~\cite{hou:mcpsecurity2025,badri:robustness2025}.
 \end{itemize}
 
 \subsection{The Human-in-the-Loop Problem}
@@ -171,28 +181,30 @@ This paper addresses the following research questions:
 MCP's \texttt{sampling} primitive allows servers to request LLM
 completion, creating a bidirectional control flow that complicates
 permission boundaries compared to unidirectional REST
-APIs~\cite{anthropic:mcp2024,gaire:sok2025}.
+APIs~\cite{emergentmind:injection}.
 
 
 \section{Proposed Convergence: The Agent Protocol Stack}
 \label{sec:stack}
 
 This section addresses the ``Future Work'' gap by synthesizing the
-protocols into a layered model (the ``TCP/IP'' analogy):
+protocols~\cite{mitra:stack2026}. The layered model (the ``TCP/IP''
+analogy):
 
 \begin{itemize}
   \item \textbf{Layer 3 --- Collaboration} (``The Social Layer''):
     \textbf{A2A / ACP.} Agents talking to Agents. Delegating high-level
-    goals (``Plan a trip'')~\cite{google:a2a2024,ibm:acp2024}.
+    goals (``Plan a trip'')~\cite{ehtesham:survey2025}.
   \item \textbf{Layer 2 --- Context \& Tools} (``The Hands \& Eyes''):
     \textbf{MCP.} Agents talking to Data/Tools. Executing specific atomic
-    actions (``Query database,'' ``Read file'')~\cite{anthropic:mcp2024}.
+    actions (``Query database,'' ``Read
+    file'')~\cite{oribe:mcp2025,mitra:stack2026}.
   \item \textbf{Layer 1 --- Transport:} HTTP / SSE / JSON-RPC.
 \end{itemize}
 
 MCP and A2A are complementary. An A2A agent (the high-level planner)
 effectively acts as an \emph{MCP Host} to execute specific sub-tasks
-using \emph{MCP Servers}~\cite{ehtesham:survey2025}.
+using \emph{MCP Servers}~\cite{mitra:stack2026}.
 
 
 \section{Discussion \& Future Directions}
@@ -202,15 +214,16 @@ using \emph{MCP Servers}~\cite{ehtesham:survey2025}.
   \item \textbf{The ``Context-Aware'' Shift:} Discuss the move toward
     ``Context-Aware MCP'' (CA-MCP) where servers share a global state
     store to reduce context window bloating, addressing the limitations of
-    ``dumb'' pipes~\cite{anon:camcp2025}.
-  \item \textbf{Ecosystem Maturity:} While MCP has rapid adoption (Claude,
-    IDEs, 5000+ servers)~\cite{anthropic:mcp2024,li:measurement2025}, A2A
-    provides necessary enterprise features like auditability and complex
-    negotiation that MCP currently lacks~\cite{google:a2a2024}.
+    ``dumb'' pipes~\cite{jayanti:camcp2026}.
+  \item \textbf{Ecosystem Maturity:} While MCP has rapid adoption
+    (Claude, IDEs, 5000+
+    servers)~\cite{oribe:mcp2025}, A2A provides necessary enterprise
+    features like auditability and complex negotiation that MCP currently
+    lacks~\cite{ehtesham:survey2025}.
   \item \textbf{Recommendation:} Developers should use MCP for
     \emph{vertical} integration (connecting an agent to a database) and
     A2A for \emph{horizontal} integration (connecting a travel agent to a
-    booking agent).
+    booking agent)~\cite{mitra:stack2026}.
 \end{itemize}
 
 
@@ -220,11 +233,11 @@ using \emph{MCP Servers}~\cite{ehtesham:survey2025}.
 \begin{itemize}
   \item MCP successfully solves the ``last mile'' connectivity problem for
     agents, transforming the $M \times N$ problem into an $M + N$
-    ecosystem~\cite{anthropic:mcp2024,ehtesham:survey2025}.
+    ecosystem~\cite{oribe:mcp2025,ayyagari:mcpagentic2025}.
   \item However, it is not a complete agent orchestration framework. The
     future of agentic infrastructure lies in the composition of these
     protocols, where MCP provides the standardized I/O layer for the
-    ``Internet of Agents''~\cite{mcpagentbench:2025}.
+    ``Internet of Agents''~\cite{mitra:stack2026}.
 \end{itemize}
 
 
@@ -241,62 +254,67 @@ The author would like to thank...
 \fi
 
 
-\begin{thebibliography}{12}
+\begin{thebibliography}{11}
 
 \bibitem{ehtesham:survey2025}
 A. Ehtesham, A. Singh, G. K. Gupta, and S. Kumar, ``A Survey of Agent
 Interoperability Protocols: Model Context Protocol (MCP), Agent
 Communication Protocol (ACP), Agent-to-Agent Protocol (A2A), and Agent
-Network Protocol (ANP),'' \emph{arXiv preprint arXiv:2505.02279}, 2025.
-
-\bibitem{hou:mcpsecurity2025}
-X. Hou, Y. Zhao, S. Wang, and H. Wang, ``Model Context Protocol (MCP):
-Landscape, Security Threats, and Future Research Directions,''
-\emph{arXiv preprint arXiv:2503.23278}, 2025.
+Network Protocol (ANP),'' \emph{arXiv preprint arXiv:2505.02279}, May
+2025.
 
 \bibitem{oribe:mcp2025}
 J. A. Oribe, ``The Model Context Protocol (MCP): Emergence, Technical
 Architecture, and the Future of Agentic AI Infrastructure,'' Zenodo,
 2025, doi: 10.5281/zenodo.17390299.
 
-\bibitem{gaire:sok2025}
-R. Gaire et al., ``Systematization of Knowledge: Security and Safety in
-the Model Context Protocol Ecosystem,'' \emph{arXiv preprint}, 2025.
+\bibitem{hou:mcpsecurity2025}
+X. Hou, Y. Zhao, S. Wang, and H. Wang, ``Model Context Protocol (MCP):
+Landscape, Security Threats, and Future Research Directions,''
+\emph{arXiv preprint arXiv:2503.23278}, 2025.
 
-\bibitem{mcpagentbench:2025}
-MCP-AgentBench Team, ``MCP-AgentBench: Evaluating Real-World Language
-Agent Performance with MCP-Mediated Tools,'' \emph{arXiv preprint}, 2025.
+\bibitem{mitra:stack2026}
+S. Mitra, ``The Agent Protocol Stack: Why MCP + A2A + A2UI Is the TCP/IP
+Moment for Agentic AI,'' \emph{subhadipmitra.com}, Jan. 2026. [Online].
+Available: \url{https://subhadipmitra.com/blog/2026/agent-protocol-stack/}
 
-\bibitem{li:measurement2025}
-C. Li, Q. Sun, and H. Zhou, ``A Measurement Study of Model Context
-Protocol,'' \emph{arXiv preprint arXiv:2501.12345}, 2025.
+\bibitem{ayyagari:mcpagentic2025}
+V. Ayyagari, ``Model Context Protocol for Agentic AI: Enabling Contextual
+Interoperability Across Systems,'' \emph{International Journal of
+Computational and Experimental Science and Engineering}, vol.~11, no.~3,
+pp.~6072--6082, 2025, doi: 10.22399/ijcesen.3678.
 
-\bibitem{anon:secanalysis2025}
-Anonymous, ``Security Analysis of the Model Context Protocol
-Specification and Prompt Injection Vulnerabilities in Tool-Integrated LLM
-Agents,'' \emph{arXiv preprint}, 2025.
+\bibitem{ganesh:mcp2025}
+K. Ganesh, ``Anthropic's Model Context Protocol (MCP) for AI Applications
+and Agents,'' Bluetick Consultants Blog, Mar. 2025. [Online]. Available:
+\url{https://www.bluetickconsultants.com/implementing-anthropics-model-context-protocol-mcp-for-ai-applications-and-agents/}
 
-\bibitem{anon:camcp2025}
-Anonymous, ``Enhancing Model Context Protocol (MCP) with Context-Aware
-Server Collaboration,'' \emph{arXiv preprint}, 2025.
+\bibitem{maloyan:breaking2026}
+N. Maloyan and D. Namiot, ``Breaking the Protocol: Security Analysis of
+the Model Context Protocol Specification and Prompt Injection
+Vulnerabilities in Tool-Integrated LLM Agents,'' \emph{arXiv preprint
+arXiv:2601.17549}, Jan. 2026.
 
-\bibitem{google:a2a2024}
-Google, ``Agent2Agent (A2A) Protocol Documentation,'' Google Developers
-Blog, 2024. [Online]. Available:
-\url{https://developers.googleblog.com/en/a2a-a-new-era-of-agent-interoperability/}
+\bibitem{reddit:lspmcp}
+Online Discussion, ``LSP vs MCP: The One True Story to Rule Them All,''
+r/mcp, Reddit, 2025. [Online]. Available:
+\url{https://www.reddit.com/r/mcp/comments/1joqzpz/lsp_vs_mcp_the_one_true_story_to_rule_them_all/}
 
-\bibitem{openai:fc2023}
-OpenAI, ``Function Calling and Other API Updates,'' OpenAI Blog, Jun.
-2023. [Online]. Available:
-\url{https://openai.com/blog/function-calling-and-other-api-updates}
+\bibitem{badri:robustness2025}
+P. R. B. Satya, A. Guyyala, V. Putta, and K. T. Areti, ``Robustness of
+Automated AI Agents Against Adversarial Context Injection in MCP,''
+\emph{International Journal of Computer Applications}, vol.~187, no.~56,
+Nov. 2025, doi: 10.5120/ijca2025925957.
 
-\bibitem{anthropic:mcp2024}
-Anthropic, ``Model Context Protocol Specification,'' Nov. 2024. [Online].
-Available: \url{https://spec.modelcontextprotocol.io}
+\bibitem{emergentmind:injection}
+Emergent Mind, ``Prompt-Based Context Injection Mechanism,'' 2025.
+[Online]. Available:
+\url{https://www.emergentmind.com/topics/prompt-based-context-injection-mechanism}
 
-\bibitem{ibm:acp2024}
-IBM BeeAI, ``Introduction to Agent Communication Protocol (ACP),'' BeeAI
-Documentation, 2024. [Online]. Available: \url{https://docs.beeai.dev}
+\bibitem{jayanti:camcp2026}
+M. A. Jayanti and X. Y. Han, ``Enhancing Model Context Protocol (MCP)
+with Context-Aware Server Collaboration,'' \emph{arXiv preprint
+arXiv:2601.11595}, Jan. 2026.
 
 \end{thebibliography}
 
