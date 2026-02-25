@@ -47,11 +47,8 @@ Agent-to-Agent (A2A), and Agent Communication Protocol
 comparison regarding their architectural trade-offs. This paper analyzes
 MCP against its primary contenders---Google's A2A protocol and OpenAI's
 REST-based function calling---to determine the specific utility of
-stateful versus stateless interaction patterns. We utilize a
-``Systematization of Knowledge'' (SoK)
-approach~\cite{hou:mcpsecurity2025} combined with a constructive
-evaluation of a standardized ``Research Assistant'' task
-graph~\cite{ganesh:mcp2025} implemented across three protocols. Empirical
+stateful versus stateless interaction patterns. Using a structured
+comparison across three protocols, empirical
 validation demonstrates that MCP's persistent connection model reduces marginal
 execution latency in multi-turn workflows compared to stateless REST, though this
 efficiency introduces an ``implicit trust propagation'' vulnerability that amplifies
