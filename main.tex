@@ -30,14 +30,11 @@
 \title{Layer-Wise Fidelity Evaluation of Multi-Layer Agentic AI Pipelines:
 MCP, A2A, and A2UI}
 
-\author{\"{O}mer Furkan Tercan%
-\IEEEcompsocitemizethanks{%
-  \IEEEcompsocthanksitem \"{O}.~F. Tercan is with the University of Helsinki.
-  E-mail: omer.tercan@helsinki.fi
-}%
-}
+\author{\"{O}mer Furkan Tercan\\
+University of Helsinki\\
+omer.tercan@helsinki.fi}
 
-\markboth{IEEE Computer}%
+\markboth{IEEE Computer Science Journal}%
 {Tercan: Layer-Wise Fidelity Evaluation of Multi-Layer Agentic AI Pipelines}
 
 \maketitle
@@ -72,8 +69,9 @@ layer-wise fidelity evaluation, Model Context Protocol, MCP, Agent-to-Agent,
 A2A, Agent-to-UI, A2UI, BERTScore, agentic pipelines, information fidelity.
 \end{IEEEkeywords}
 
-\IEEEpeerreviewmaketitle
+\vspace{3\baselineskip}
 
+\IEEEpeerreviewmaketitle
 
 \IEEEraisesectionheading{\section{Introduction}\label{sec:introduction}}
 
@@ -222,7 +220,7 @@ serialised JSON payload is logged as $R_2$.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=1.2\columnwidth]{figures/fig1-pipeline-architecture}
+  \includegraphics[width=\columnwidth]{figures/fig1-pipeline-architecture}
   \caption{MCP$\rightarrow$A2A$\rightarrow$A2UI pipeline architecture with
   layer-wise fidelity capture points. Each layer produces a scoreable intermediate
   ($R_0$, $R_1$, $R_2$). Dashed amber arrows indicate BERTScore computation
@@ -309,7 +307,7 @@ effects:
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=1.2\columnwidth]{figures/fig2-evaluation-design}
+  \includegraphics[width=\columnwidth]{figures/fig2-evaluation-design}
   \caption{Layer-wise fidelity scoring: three research questions and testable
   hypotheses. Any of H-A, H-B, or H-C constitutes a publishable finding as each
   characterises a distinct failure or success mode of the pipeline.}
