@@ -73,20 +73,30 @@ _Figure 1. Each layer produces a scoreable intermediate (R₀, R₁, R₂). Dash
 
 ### 3.2 Layer-Wise Fidelity Scoring
 
-**Metric selection.** We select BERTScore F1 [12] as our primary metric for three reasons. First, it handles paraphrase gracefully via contextual embeddings, which is essential here because agent-generated prose will rarely reproduce reference text verbatim. Second, it produces a continuous scalar per query, enabling the delta arithmetic (Δ₁, Δ₂) that is central to our protocol. Third, it requires only a reference answer string — no judge model, no API call, no rubric — making the scoring pipeline fully deterministic and reproducible at temperature 0.
+**Metric selection.** We select BERTScore [12] as our primary metric for three reasons. First, it handles paraphrase gracefully via contextual embeddings, which is essential here because agent-generated prose will rarely reproduce reference text verbatim. Second, it produces continuous scalars per query, enabling the delta arithmetic central to our protocol. Third, it requires only a reference answer string — no judge model, no API call, no rubric — making the scoring pipeline fully deterministic and reproducible at temperature 0.
 
 The main alternative, LLM-as-a-Judge [13], was considered but deferred to future work (Section 6.6). While strong for open-ended quality assessment, it introduces non-determinism, API cost, and positional bias, all of which complicate fair layer-wise comparison. ROUGE-L was excluded because it penalises valid paraphrases, making it unsuitable for evaluating agent-generated synthesis where rewording is expected and desirable. Exact match was excluded for the same reason, and additionally because reference answers span 1–3 sentences with no single correct surface form.
 
-Each intermediate is scored against the same human-written reference answer using BERTScore F1 with `roberta-large` as the backbone model. Formally:
+**Length disparity and the P/R decomposition.** A known limitation of using BERTScore F1 to compare across layers of different lengths is that R₀ — three concatenated documentation chunks (~900 tokens) — will naturally score lower on Precision than R₁ — a synthesised answer (~60–100 tokens) — simply because more of R₀'s tokens are irrelevant to the short reference answer. This means a positive Δ₁ on F1 alone cannot cleanly separate genuine semantic improvement from the mechanical effect of length reduction. To address this, we report BERTScore Precision (P), Recall (R), and F1 separately at each layer. The decomposition is interpretable: if R₁ achieves higher Precision than R₀ while maintaining comparable Recall, this indicates that A2A synthesis improved selectivity without sacrificing coverage — precisely what a grounded synthesis step should do. If Recall drops, synthesis lost information. This framing makes Δ₁ analytically honest.
 
-- **F1(R₀)**: BERTScore F1 of the raw MCP tool return against the reference.
-- **F1(R₁)**: BERTScore F1 of the A2A agent's synthesised response against the reference.
-- **F1(R₂)**: BERTScore F1 of the A2UI JSON text fields (`summary` concatenated with `key_points`) against the reference.
+Each intermediate is scored against the same human-written reference answer using BERTScore with `roberta-large` as the backbone model. For each layer we record three values:
 
-Two fidelity deltas are derived:
+- **P(Rₙ)**: BERTScore Precision — proportion of the candidate's tokens semantically matched in the reference. Sensitive to candidate length; longer candidates are penalised.
+- **R(Rₙ)**: BERTScore Recall — proportion of the reference's tokens semantically matched in the candidate. Indicates how completely the candidate covers the reference answer.
+- **F1(Rₙ)**: Harmonic mean of P and R. Primary scalar for delta computation.
 
-- **Δ₁ = F1(R₁) − F1(R₀)**: measures the A2A transformation effect. A positive value implies the agent's synthesis improves semantic alignment; a negative value implies drift.
-- **Δ₂ = F1(R₂) − F1(R₁)**: measures the A2UI compression effect. A negative value implies the JSON schema discards relevant content.
+Applied at each layer:
+
+- **P(R₀), R(R₀), F1(R₀)**: scores of the raw MCP tool return against the reference.
+- **P(R₁), R(R₁), F1(R₁)**: scores of the A2A agent's synthesised response against the reference.
+- **P(R₂), R(R₂), F1(R₂)**: scores of the A2UI JSON text fields (`summary` concatenated with `key_points`) against the reference.
+
+Four attribution deltas are derived. Δ₁ and Δ₂ denote strictly F1 differences; Recall deltas are tracked separately to diagnose length-confounded effects:
+
+- **Δ₁ = F1(R₁) − F1(R₀)**: A2A transformation effect on F1.
+- **Δ₁ᴿ = R(R₁) − R(R₀)**: A2A effect on Recall. Stable or positive Δ₁ᴿ alongside positive Δ₁ confirms genuine condensation; negative Δ₁ᴿ indicates information loss.
+- **Δ₂ = F1(R₂) − F1(R₁)**: A2UI compression effect on F1.
+- **Δ₂ᴿ = R(R₂) − R(R₁)**: A2UI effect on Recall. A large negative Δ₂ᴿ indicates the JSON schema discards relevant content.
 
 ![Figure 2. Layer-wise fidelity scoring: three research questions and testable hypotheses](figures/fig2-evaluation-design.svg)
 
@@ -119,9 +129,9 @@ We use the httpx Python library documentation as our retrieval corpus, chosen be
 
 ## 5. Results
 
-### 5.1 Layer-Wise BERTScore F1
+### 5.1 Layer-Wise BERTScore Results
 
-**Table 1.** BERTScore F1 at each pipeline layer across 15 test queries. Δ₁ = F1(R₁) − F1(R₀); Δ₂ = F1(R₂) − F1(R₁).
+**Table 1a.** BERTScore F1 at each pipeline layer across 15 test queries. Δ₁ = F1(R₁) − F1(R₀); Δ₂ = F1(R₂) − F1(R₁).
 
 | Query ID | F1(R₀) | F1(R₁) | F1(R₂) | Δ₁  | Δ₂  |
 | -------- | ------ | ------ | ------ | --- | --- |
@@ -142,6 +152,27 @@ We use the httpx Python library documentation as our retrieval corpus, chosen be
 | Q15      | —      | —      | —      | —   | —   |
 | **Mean** | —      | —      | —      | —   | —   |
 
+**Table 1b.** BERTScore Precision and Recall per layer. Recall deltas Δ₁ᴿ = R(R₁) − R(R₀) and Δ₂ᴿ = R(R₂) − R(R₁) disambiguate condensation effects from information loss (see Section 3.2).
+
+| Query ID | P(R₀) | R(R₀) | P(R₁) | R(R₁) | P(R₂) | R(R₂) | Δ₁ᴿ | Δ₂ᴿ |
+| -------- | ------ | ------ | ------ | ------ | ------ | ------ | ---- | ---- |
+| Q01      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q02      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q03      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q04      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q05      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q06      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q07      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q08      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q09      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q10      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q11      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q12      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q13      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q14      | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q15      | —      | —      | —      | —      | —      | —      | —    | —    |
+| **Mean** | —      | —      | —      | —      | —      | —      | —    | —    |
+
 ### 5.2 Findings
 
 > _Fill after running experiments. Frame findings around Δ₁ and Δ₂ directions._
@@ -157,7 +188,7 @@ We use the httpx Python library documentation as our retrieval corpus, chosen be
 
 ### 6.1 Interpretation of Results
 
-The layer-wise delta structure allows causal attribution of quality changes to specific architectural decisions. If Δ₁ > 0, the A2A agent adds genuine value beyond raw retrieval — its synthesis improves semantic alignment with the reference answer, suggesting that paraphrasing and condensation are beneficial for this task. If Δ₁ < 0, the agent introduces drift; tighter grounding prompts or citation constraints would be indicated. If Δ₂ is large and negative, the JSON schema is too lossy: the `key_points` field truncates or the `summary` field over-compresses relevant content, and richer schema fields should be considered.
+The layer-wise delta structure allows causal attribution of quality changes to specific architectural decisions. However, Δ₁ must be interpreted through the P/R decomposition, not F1 alone, because R₀ and R₁ differ substantially in length. A positive Δ₁ on F1 reflects improved Precision (synthesis removes irrelevant tokens) but should be accompanied by stable or high Recall (synthesis preserves the relevant content). If R₁ achieves higher Precision than R₀ with comparable Recall, this confirms that A2A synthesis genuinely improved content selectivity. If Recall drops alongside rising Precision, synthesis is over-condensing and losing information — tighter grounding prompts or citation constraints are indicated. If Δ₂ is large and negative on both F1 and Recall, the JSON schema is too lossy: the `key_points` field truncates or the `summary` field over-compresses relevant content, and richer schema fields should be considered.
 
 These interpretations contrast with what aggregate scoring would reveal. AgentMaster [6] reports a mean BERTScore F1 of 96.3% on final outputs — a strong result, but one that cannot locate where in the pipeline quality is preserved or degraded. Our protocol makes this attribution explicit.
 
@@ -184,6 +215,8 @@ _Reliability:_ The scoring pipeline is fully deterministic at temperature 0 and 
 ### 6.5 Limitations
 
 The test set is small (n=15); results may not reach statistical significance and should be interpreted as indicative rather than conclusive. BERTScore on JSON text fields does not capture visual layout quality — a well-structured card may communicate more clearly than its text similarity score implies. The single-domain setting (software documentation) may favour retrieval-heavy pipelines over those that require multi-step reasoning.
+
+A structural limitation of comparing BERTScore F1 across layers of different lengths is that R₀ (three concatenated chunks, ~900 tokens) will naturally score lower on Precision than R₁ (a synthesised answer, ~60–100 tokens), because many of R₀'s tokens have no counterpart in the short reference answer. A positive Δ₁ on F1 therefore conflates genuine semantic improvement with the mechanical effect of length reduction. We address this by reporting Precision and Recall separately at each layer (Section 3.2), which allows readers to distinguish condensation effects from information loss. Evaluators of future work using this protocol on tasks with longer reference answers will face less severe length disparity.
 
 This work deliberately scopes out security evaluation of the MCP+A2A pipeline. MCP tool security is an active and serious research area in its own right: a taxonomy of 25 MCP vulnerability categories has been published, empirical work suggests that deploying ten MCP plugins creates a 92% probability of exploitation, and OWASP has released an MCP-specific Top 10 [11, 14]. A rigorous security evaluation of agentic pipelines — covering prompt injection, tool misuse, and supply-chain risks — represents important future work that is orthogonal to the fidelity evaluation presented here.
 

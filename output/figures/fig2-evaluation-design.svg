@@ -16,7 +16,7 @@
   <text x="151" y="148" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#3c3489">Does the agent synthesis of R0</text>
   <text x="151" y="163" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#3c3489">lose or add information</text>
   <text x="151" y="178" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#3c3489">vs. the raw tool output?</text>
-  <text x="151" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#26215c">F1(R0) vs F1(R1) -- delta-1</text>
+  <text x="151" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#26215c">Δ₁ F1 + Δ₁ᴿ Recall</text>
   <text x="151" y="224" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-style="italic" fill="#534ab7">A2A layer effect</text>
 
   <!-- Q2 box -->
@@ -26,7 +26,7 @@
   <text x="400" y="148" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#0f6e56">Does rendering for UI</text>
   <text x="400" y="163" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#0f6e56">further degrade or improve</text>
   <text x="400" y="178" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#0f6e56">coherence of R1?</text>
-  <text x="400" y="198" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#04342c">F1(R1) vs F1(R2) -- delta-2</text>
+  <text x="400" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="700" fill="#04342c">Δ₂ F1 + Δ₂ᴿ Recall</text>
   <text x="400" y="224" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-style="italic" fill="#0f6e56">A2UI layer effect</text>
 
   <!-- Q3 box -->
@@ -53,8 +53,8 @@
   <!-- H-B -->
   <rect x="60" y="338" width="12" height="12" rx="2" fill="#0f6e56"/>
   <text x="82" y="348" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#2c2c2a">H-B: Synthesis adds value</text>
-  <text x="82" y="362" font-family="Arial, sans-serif" font-size="10" fill="#2c2c2a">A2A improves on raw retrieval: F1(R&#x2081;) &gt; F1(R&#x2080;), &#916;&#x2081; &gt; 0</text>
-  <text x="82" y="374" font-family="Arial, sans-serif" font-size="10" font-style="italic" fill="#633806">Implies: agent paraphrase improves semantic alignment; retrieval is noisier than synthesis</text>
+  <text x="82" y="362" font-family="Arial, sans-serif" font-size="10" fill="#2c2c2a">Δ₁ &gt; 0 on F1 AND Δ₁ᴿ ≥ 0 on Recall: condensation without loss</text>
+  <text x="82" y="374" font-family="Arial, sans-serif" font-size="10" font-style="italic" fill="#633806">Implies: synthesis improves selectivity; if Recall drops, agent over-compresses</text>
 
   <!-- H-C -->
   <rect x="60" y="384" width="12" height="12" rx="2" fill="#993c1d"/>
@@ -62,5 +62,5 @@
   <text x="82" y="408" font-family="Arial, sans-serif" font-size="10" fill="#2c2c2a">Formatting loses content: F1(R&#x2081;) &gt;&gt; F1(R&#x2082;), &#916;&#x2082; &lt;&lt; 0</text>
 
   <!-- Caption -->
-  <text x="400" y="418" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#888888">&#916;&#x2081; = F1(R&#x2081;) &#8722; F1(R&#x2080;)  |  &#916;&#x2082; = F1(R&#x2082;) &#8722; F1(R&#x2081;)  |  roberta-large backbone  |  n=15 test queries</text>
+  <text x="400" y="418" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#888888">Δ₁/Δ₂ = F1 deltas  |  Δ₁ᴿ/Δ₂ᴿ = Recall deltas  |  roberta-large backbone  |  n=15 test queries</text>
 </svg>
