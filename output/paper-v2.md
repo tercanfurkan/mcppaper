@@ -1,7 +1,7 @@
 # Layer-Wise Fidelity Evaluation of Multi-Layer Agentic AI Pipelines: MCP, A2A, and A2UI
 
-**[Author names — anonymised for review]**  
-**[Institution] · [email]**
+**Ömer Furkan Tercan**  
+University of Helsinki · omer.tercan@helsinki.fi
 
 ---
 
@@ -27,7 +27,7 @@ Our contributions are as follows. First, we define layer-wise fidelity scoring a
 
 Given the pace of development in this field, where practitioner knowledge frequently precedes formal publication, this section draws on both peer-reviewed literature and grey literature — including technical blog posts and official protocol documentation — following the Multivocal Literature Review (MLR) methodology established for software engineering research [15].
 
-**Model Context Protocol.** Introduced by Anthropic in November 2024, MCP [2] standardises tool-and-resource invocation by LLM agents via a JSON-RPC client-server architecture. The protocol defines four core primitives — Tools, Resources, Prompts, and Sampling — and separates concerns across a Host (the LLM application), Clients (session managers), and Servers (capability providers) [3, 7]. This decoupling reduces the fragmentation caused by ad-hoc API integrations and enables dynamic tool discovery [3]. From an evaluation standpoint, MCP tool returns (R₀) are the ground-truth information source of the pipeline: they represent what the system actually retrieved before any agent processing.
+**Model Context Protocol.** Introduced by Anthropic in November 2024, MCP [2] standardises tool-and-resource invocation by LLM agents via a JSON-RPC client-server architecture. The protocol defines four core primitives — Tools, Resources, Prompts, and Sampling — and separates concerns across a Host (the LLM application), Clients (session managers), and Servers (capability providers) [3, 7, 8]. This decoupling reduces the fragmentation caused by ad-hoc API integrations and enables dynamic tool discovery [3]. From an evaluation standpoint, MCP tool returns (R₀) are the ground-truth information source of the pipeline: they represent what the system actually retrieved before any agent processing.
 
 **Agent-to-Agent coordination.** Introduced by Google in April 2025, A2A protocols govern structured message exchange between agents across different frameworks or organisational boundaries [3, 16]. Frameworks such as LangGraph, AutoGen, and Magentic-One implement A2A semantics locally through explicit handoff protocols and role-constrained reasoning [9, 10]. Each inter-agent communication step introduces summarisation, reformulation, or synthesis — all potential fidelity loss points [5]. We treat the A2A agent's synthesised natural-language response (R₁) as a distinct scoreable intermediate, isolating the transformation effect of this layer.
 
@@ -237,44 +237,39 @@ We introduced _layer-wise fidelity scoring_ as an evaluation protocol for multi-
 
 ## References
 
-[1] Yang, S. et al. A Survey of AI Agent Protocols. _arXiv:2504.16736_. Shanghai Jiao Tong University, 2025.
+[1] S. Yang et al., "A Survey of AI Agent Protocols," arXiv preprint arXiv:2504.16736, 2025.
 
-[2] Anthropic. Model Context Protocol (MCP). Technical specification, November 2024. https://modelcontextprotocol.io
+[2] Anthropic, "Model Context Protocol (MCP)," Technical Specification, Nov. 2024. [Online]. Available: https://modelcontextprotocol.io
 
-[3] Ehtesham, A., Singh, A., Gupta, G.K., and Kumar, S. A Survey of Agent Interoperability Protocols: Model Context Protocol (MCP), Agent Communication Protocol (ACP), Agent-to-Agent Protocol (A2A), and Agent Network Protocol (ANP). _arXiv:2505.02279_, 2025.
+[3] A. Ehtesham, A. Singh, G. K. Gupta, and S. Kumar, "A Survey of Agent Interoperability Protocols: Model Context Protocol (MCP), Agent Communication Protocol (ACP), Agent-to-Agent Protocol (A2A), and Agent Network Protocol (ANP)," arXiv preprint arXiv:2505.02279, 2025.
 
-[4] Jayanti, M.A. and Han, X.Y. Enhancing Model Context Protocol (MCP) with Context-Aware Server Collaboration. _arXiv:2601.11595_, 2026.
+[4] M. A. Jayanti and X. Y. Han, "Enhancing Model Context Protocol (MCP) with Context-Aware Server Collaboration," arXiv preprint arXiv:2601.11595, 2026.
 
-[5] [Authors TBC]. Beyond Self-Talk: A Communication-Centric Survey of LLM-Based Multi-Agent Systems. _arXiv:2502.14321_, 2025.
+[5] B. Yan et al., "Beyond Self-Talk: A Communication-Centric Survey of LLM-Based Multi-Agent Systems," arXiv preprint arXiv:2502.14321, 2025.
 
-[6] Liao, C.C., Liao, D., and Gadiraju, S.S. AgentMaster: A Multi-Agent Conversational Framework Using A2A and MCP Protocols for Multimodal Information Retrieval and Analysis. In _Proceedings of EMNLP 2025: System Demonstrations_. arXiv:2507.21105, 2025.
+[6] C. C. Liao, D. Liao, and S. S. Gadiraju, "AgentMaster: A Multi-Agent Conversational Framework Using A2A and MCP Protocols for Multimodal Information Retrieval and Analysis," in _Proc. EMNLP 2025: System Demonstrations_, arXiv:2507.21105, 2025.
 
-[7] [Authors TBC]. A Survey on Model Context Protocol: Architecture, State-of-the-Art, Challenges and Future Directions. _TechRxiv_, doi:10.36227/techrxiv.174495492, 2025.
+[7] P. P. Ray, "A Survey on Model Context Protocol: Architecture, State-of-the-Art, Challenges and Future Directions," _TechRxiv_, doi: 10.36227/techrxiv.174495492, Apr. 2025.
 
-[8] [Authors TBC]. A Survey of the Model Context Protocol (MCP): Standardizing Context to Enhance Large Language Models (LLMs). _Preprints.org_, 2025.
+[8] A. Singh, A. Ehtesham, S. Kumar, and T. T. Khoei, "A Survey of the Model Context Protocol (MCP): Standardizing Context to Enhance Large Language Models (LLMs)," _Preprints.org_, 2025.
 
-[9] Tokal, S.S.K. et al. AgentX: Towards Orchestrating Robust Agentic Workflow Patterns with FaaS-hosted MCP Services. _arXiv:2509.07595_, 2025.
+[9] S. S. K. A. Tokal, V. Jha, A. Eswaran, P. Jayachandran, and Y. Simmhan, "AgentX: Towards Orchestrating Robust Agentic Workflow Patterns with FaaS-hosted MCP Services," arXiv preprint arXiv:2509.07595, 2025.
 
-[10] [Authors TBC]. Agentic AI Frameworks: Architectures, Protocols, and Design Challenges. _arXiv:2508.10146_, 2025.
+[10] H. Derouiche, Z. Brahmi, and H. Mazeni, "Agentic AI Frameworks: Architectures, Protocols, and Design Challenges," arXiv preprint arXiv:2508.10146, 2025.
 
-[11] [Authors TBC]. Chances and Challenges of the Model Context Protocol in Digital Forensics and Incident Response. _arXiv:2506.00274_, 2025.
+[11] J.-N. Hilgert, C. Jakobs, M. Külper, M. Lambertz, A. Mahr, and E. Padilla, "Chances and Challenges of the Model Context Protocol in Digital Forensics and Incident Response," arXiv preprint arXiv:2506.00274, 2025.
 
-[12] Zhang, T. et al. BERTScore: Evaluating Text Generation with BERT. In _Proceedings of ICLR 2020_.
+[12] T. Zhang et al., "BERTScore: Evaluating Text Generation with BERT," in _Proc. ICLR 2020_, 2020.
 
-[13] Zheng, L. et al. Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. In _Proceedings of NeurIPS 2023_.
+[13] L. Zheng et al., "Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena," in _Proc. NeurIPS 2023_, 2023.
 
-[14] Mitra, S. The Agent Protocol Stack: Why MCP + A2A + A2UI Is the TCP/IP Moment for Agentic AI. _Personal technical blog_ (grey literature, Tier 2–3 per MLR classification). January 2026. https://subhadipmitra.com/blog/2026/agent-protocol-stack/
+[14] S. Mitra, "The Agent Protocol Stack: Why MCP + A2A + A2UI Is the TCP/IP Moment for Agentic AI," Personal technical blog (grey literature, Tier 2–3 per MLR classification), Jan. 2026. [Online]. Available: https://subhadipmitra.com/blog/2026/agent-protocol-stack/
 
-[15] Garousi, V., Felderer, M., and Mäntylä, M.V. Guidelines for Including Grey Literature and Conducting Multivocal Literature Reviews in Software Engineering. _Information and Software Technology_, 106:101–121, 2019.
+[15] V. Garousi, M. Felderer, and M. V. Mäntylä, "Guidelines for Including Grey Literature and Conducting Multivocal Literature Reviews in Software Engineering," _Information and Software Technology_, vol. 106, pp. 101–121, 2019.
 
-[16] Google. Agent2Agent (A2A) Protocol — Official Specification v1.0. _a2a-protocol.org_, 2025. https://a2a-protocol.org/latest/
+[16] Google, "Agent2Agent (A2A) Protocol — Official Specification v1.0," a2a-protocol.org, 2025. [Online]. Available: https://a2a-protocol.org/latest/
 
-[17] Google. A2UI Protocol — Official Specification v0.8. _a2ui.org_, 2025. https://a2ui.org/
+[17] Google, "A2UI Protocol — Official Specification v0.8," a2ui.org, 2025. [Online]. Available: https://a2ui.org/
 
 > _TODO before submission:_
-> _1. Fill in [Authors TBC] entries: [5] Beyond Self-Talk, [7] TechRxiv MCP survey, [8] Preprints.org MCP survey, [10] Agentic AI Frameworks, [11] Digital Forensics MCP._
-> _2. Reference [8] (Preprints.org MCP survey) is not cited in the body — either add a citation or remove._
-> _3. Verify venue for [9] AgentX, [5] Beyond Self-Talk, [10] Agentic AI Frameworks — check if published._
-> _4. Check IEEE template citation format and reformat if needed._
-> _5. Convert Section 2 MLR note from blockquote to inline prose for camera-ready._
-> _6. Replace projected scores in Section 5 with live pipeline outputs once harness is run._
+> _1. Replace projected scores in Section 5 with live pipeline outputs once harness is run._
