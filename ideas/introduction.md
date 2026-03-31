@@ -41,6 +41,8 @@ arXiv:2503.23278 (2025)
 
 3- what are the cutting-edge emerging agent communication protocols following MCP, ACP, A2A, ANP described in the "A Survey of Agent Interoperability Protocols" https://arxiv.org/html/2505.02279v2. Why do they keep on emerging. In which ways are they contending each other?
 
+4- Reframe the research questions around The Agent Protocol Stack and the TCP/IP moment for Agentic AI as described in "The Agent Protocol Stack: Why MCP + A2A + A2UI Is the TCP/IP Moment for Agentic AI". Primary focus around MCP.
+
 # Unified communication protocol challenges
 
 Following paragraphs from the Beyond Self-Talk: A Communication-Centric Survey of LLM-Based Multi-Agent Systems (https://arxiv.org/html/2502.14321v2)

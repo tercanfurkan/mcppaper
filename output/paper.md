@@ -9,7 +9,7 @@
 
 > _Target: 150–200 words. Context → Objective → Method → Results → Conclusions._
 
-Multi-layer agentic pipelines — in which an LLM agent retrieves context via a standardised tool protocol, synthesises a response, and renders it through a structured user interface — are increasingly deployed in practice, yet remain poorly understood from an evaluation standpoint. Existing work evaluates such systems at the pipeline level, scoring only the final output against a reference; no framework characterises where information fidelity is gained or lost between architectural layers. We propose _layer-wise fidelity scoring_: BERTScore F1 computed independently at R₀ (raw MCP tool output), R₁ (A2A agent synthesis), and R₂ (A2UI structured payload), each against the same ground-truth reference answer. We instantiate this protocol on a software documentation Q&A task using the httpx Python library, building a minimal end-to-end prototype comprising an MCP retrieval server, a LangGraph A2A orchestrator, and a Streamlit A2UI rendering layer. Experiments across 15 test queries reveal [PLACEHOLDER: key finding]. Our protocol is task-agnostic and reusable; we release the annotated test set and scoring harness to support future benchmarking of UI-terminal agentic systems.
+Multi-layer agentic pipelines — in which an LLM agent retrieves context via a standardised tool protocol, synthesises a response, and renders it through a structured user interface — are increasingly deployed in practice, yet remain poorly understood from an evaluation standpoint. Existing work evaluates such systems at the pipeline level, scoring only the final output against a reference; no framework characterises where information fidelity is gained or lost between architectural layers. We propose _layer-wise fidelity scoring_: BERTScore F1 computed independently at R₀ (raw MCP tool output), R₁ (A2A agent synthesis), and R₂ (A2UI structured payload), each against the same ground-truth reference answer. We instantiate this protocol on a software documentation Q&A task using the httpx Python library, building a minimal end-to-end prototype comprising an MCP retrieval server, a LangGraph A2A orchestrator, and a Streamlit A2UI rendering layer. Experiments across 15 test queries reveal that A2A synthesis improves mean BERTScore F1 by +0.024 (Δ₁) while Recall drops by −0.031 (Δ₁ᴿ), confirming that synthesis improves selectivity at the cost of some coverage; A2UI formatting introduces a further small F1 loss of −0.010 (Δ₂). Our protocol is task-agnostic and reusable; we release the annotated test set and scoring harness to support future benchmarking of UI-terminal agentic systems.
 
 ---
 
@@ -21,7 +21,7 @@ Despite the growing adoption of MCP and A2A, evaluation methodology has not kept
 
 We address this gap with a simple but principled evaluation protocol: _layer-wise fidelity scoring_. Rather than scoring only the terminal output, we score each intermediate representation against the same reference answer and compute the delta between successive layers. Applied to an MCP+A2A+A2UI pipeline, this yields three independently interpretable scores and two deltas — one attributable to the A2A synthesis step and one to the A2UI formatting step. Any of these outcomes is informative: a large negative Δ₁ implies that the agent's synthesis introduces drift; a large negative Δ₂ implies that the UI schema is too lossy; a positive Δ₁ implies the agent adds genuine value beyond raw retrieval.
 
-Our contributions are as follows. First, we define layer-wise fidelity scoring as an evaluation protocol for multi-layer agentic pipelines that terminate in a structured UI (Section 3). Second, we build a minimal end-to-end prototype on software documentation Q&A and release a 15-item annotated test set (Section 4). Third, we report BERTScore F1 at each layer and identify which architectural transition incurs the greatest fidelity cost (Section 5). Fourth, we discuss implications for pipeline design and propose a multimodal evaluation extension as future work (Section 6).
+Our contributions are as follows. First, we define layer-wise fidelity scoring as an evaluation protocol for multi-layer agentic pipelines that terminate in a structured UI (Section 3). Second, we build a minimal end-to-end prototype on software documentation Q&A and release a 15-item annotated test set (Section 4). Third, we report BERTScore Precision, Recall, and F1 at each layer and identify which architectural transition incurs the greatest fidelity shift (Section 5). Fourth, we discuss implications for pipeline design and propose a multimodal evaluation extension as future work (Section 6).
 
 ---
 
@@ -139,52 +139,51 @@ We use the httpx Python library documentation as our retrieval corpus, chosen be
 
 | Query ID | F1(R₀) | F1(R₁) | F1(R₂) | Δ₁  | Δ₂  |
 | -------- | ------ | ------ | ------ | --- | --- |
-| Q01      | —      | —      | —      | —   | —   |
-| Q02      | —      | —      | —      | —   | —   |
-| Q03      | —      | —      | —      | —   | —   |
-| Q04      | —      | —      | —      | —   | —   |
-| Q05      | —      | —      | —      | —   | —   |
-| Q06      | —      | —      | —      | —   | —   |
-| Q07      | —      | —      | —      | —   | —   |
-| Q08      | —      | —      | —      | —   | —   |
-| Q09      | —      | —      | —      | —   | —   |
-| Q10      | —      | —      | —      | —   | —   |
-| Q11      | —      | —      | —      | —   | —   |
-| Q12      | —      | —      | —      | —   | —   |
-| Q13      | —      | —      | —      | —   | —   |
-| Q14      | —      | —      | —      | —   | —   |
-| Q15      | —      | —      | —      | —   | —   |
-| **Mean** | —      | —      | —      | —   | —   |
+| Q01      | 0.8600 | 0.8891 | 0.8657 | +0.0291 | −0.0234 |
+| Q02      | 0.8622 | 0.8860 | 0.8797 | +0.0238 | −0.0063 |
+| Q03      | 0.8657 | 0.8786 | 0.8804 | +0.0129 | +0.0018 |
+| Q04      | 0.8612 | 0.8823 | 0.8741 | +0.0211 | −0.0082 |
+| Q05      | 0.8653 | 0.8893 | 0.8713 | +0.0240 | −0.0180 |
+| Q06      | 0.8580 | 0.8718 | 0.8733 | +0.0138 | +0.0015 |
+| Q07      | 0.8598 | 0.8857 | 0.8715 | +0.0259 | −0.0142 |
+| Q08      | 0.8657 | 0.8909 | 0.8782 | +0.0252 | −0.0127 |
+| Q09      | 0.8548 | 0.8866 | 0.8828 | +0.0318 | −0.0038 |
+| Q10      | 0.8520 | 0.8963 | 0.8793 | +0.0443 | −0.0170 |
+| Q11      | 0.8691 | 0.8777 | 0.8705 | +0.0086 | −0.0072 |
+| Q12      | 0.8628 | 0.8883 | 0.8865 | +0.0255 | −0.0018 |
+| Q13      | 0.8623 | 0.8802 | 0.8747 | +0.0179 | −0.0055 |
+| Q14      | 0.8644 | 0.8819 | 0.8602 | +0.0175 | −0.0217 |
+| Q15      | 0.8601 | 0.8917 | 0.8752 | +0.0316 | −0.0165 |
+| **Mean** | **0.8616** | **0.8851** | **0.8749** | **+0.0235** | **−0.0102** |
 
 **Table 1b.** BERTScore Precision and Recall per layer. Recall deltas Δ₁ᴿ = R(R₁) − R(R₀) and Δ₂ᴿ = R(R₂) − R(R₁) disambiguate condensation effects from information loss (see Section 3.2).
 
 | Query ID | P(R₀) | R(R₀) | P(R₁) | R(R₁) | P(R₂) | R(R₂) | Δ₁ᴿ | Δ₂ᴿ |
 | -------- | ------ | ------ | ------ | ------ | ------ | ------ | ---- | ---- |
-| Q01      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q02      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q03      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q04      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q05      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q06      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q07      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q08      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q09      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q10      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q11      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q12      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q13      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q14      | —      | —      | —      | —      | —      | —      | —    | —    |
-| Q15      | —      | —      | —      | —      | —      | —      | —    | —    |
-| **Mean** | —      | —      | —      | —      | —      | —      | —    | —    |
+| Q01      | 0.8086 | 0.9183 | 0.8840 | 0.8943 | 0.8879 | 0.8445 | −0.0240 | −0.0498 |
+| Q02      | 0.8133 | 0.9173 | 0.8830 | 0.8890 | 0.8911 | 0.8685 | −0.0283 | −0.0205 |
+| Q03      | 0.8166 | 0.9211 | 0.8784 | 0.8789 | 0.8912 | 0.8698 | −0.0422 | −0.0091 |
+| Q04      | 0.8104 | 0.9189 | 0.8898 | 0.8749 | 0.8862 | 0.8624 | −0.0440 | −0.0125 |
+| Q05      | 0.8187 | 0.9176 | 0.8884 | 0.8902 | 0.8960 | 0.8480 | −0.0274 | −0.0422 |
+| Q06      | 0.8157 | 0.9049 | 0.8614 | 0.8825 | 0.8808 | 0.8659 | −0.0224 | −0.0166 |
+| Q07      | 0.8166 | 0.9078 | 0.8926 | 0.8790 | 0.8882 | 0.8554 | −0.0288 | −0.0236 |
+| Q08      | 0.8111 | 0.9282 | 0.8907 | 0.8911 | 0.8948 | 0.8623 | −0.0371 | −0.0288 |
+| Q09      | 0.8037 | 0.9128 | 0.8808 | 0.8925 | 0.8867 | 0.8790 | −0.0203 | −0.0135 |
+| Q10      | 0.8018 | 0.9090 | 0.8919 | 0.9008 | 0.8936 | 0.8655 | −0.0082 | −0.0353 |
+| Q11      | 0.8243 | 0.9191 | 0.8722 | 0.8832 | 0.8976 | 0.8450 | −0.0359 | −0.0382 |
+| Q12      | 0.8103 | 0.9225 | 0.8822 | 0.8945 | 0.8942 | 0.8789 | −0.0280 | −0.0156 |
+| Q13      | 0.8162 | 0.9139 | 0.8799 | 0.8805 | 0.8976 | 0.8529 | −0.0334 | −0.0276 |
+| Q14      | 0.8093 | 0.9275 | 0.8785 | 0.8854 | 0.8724 | 0.8483 | −0.0421 | −0.0371 |
+| Q15      | 0.8043 | 0.9242 | 0.8957 | 0.8878 | 0.8914 | 0.8595 | −0.0364 | −0.0283 |
+| **Mean** | **0.8121** | **0.9175** | **0.8833** | **0.8870** | **0.8900** | **0.8604** | **−0.0306** | **−0.0266** |
 
 ### 5.2 Findings
 
-> _Fill after running experiments. Frame findings around Δ₁ and Δ₂ directions._
+**F1 results (Table 1a).** Mean F1(R₀) = 0.8616, F1(R₁) = 0.8851, F1(R₂) = 0.8749. The A2A synthesis step improved F1 by Δ₁ = +0.0235, and the A2UI formatting step decreased F1 by Δ₂ = −0.0102. These results support hypothesis H-B: A2A synthesis improves F1, with the dominant transition being the A2A synthesis step.
 
-- [PLACEHOLDER] Mean F1: R₀ = ?, R₁ = ?, R₂ = ?
-- [PLACEHOLDER] Δ₁ direction and magnitude — does A2A synthesis improve or degrade fidelity?
-- [PLACEHOLDER] Δ₂ direction and magnitude — does A2UI JSON compression lose meaningful content?
-- [PLACEHOLDER] Which layer is the dominant loss or gain point?
+**P/R decomposition (Table 1b).** The Precision/Recall breakdown reveals the mechanism behind these F1 changes. R₀ exhibits low mean Precision (0.8121) alongside high Recall (0.9175), consistent with the length-disparity effect identified in Section 3.2: three concatenated documentation chunks contain the answer but also many irrelevant tokens that penalise Precision against a short reference. R₁ achieves substantially higher Precision (0.8833) as synthesis condenses the relevant content, while Recall dropped (Δ₁ᴿ = −0.0306), indicating that some information is lost during A2A synthesis. The positive Δ₁ on F1 therefore reflects improved selectivity rather than a net gain in semantic coverage. R₂ maintains comparable Precision (0.8900) while Recall dropped further (Δ₂ᴿ = −0.0266), suggesting the JSON schema used by the A2UI formatter introduces modest additional compression of the synthesised content.
+
+**Summary.** The pipeline exhibits a consistent pattern: each transformation step trades Recall coverage for Precision selectivity. The A2A synthesis step produces the largest shift in F1 (Δ₁ = +0.0235), driven by a Precision gain of +0.0712 at the cost of a Recall drop of 0.0305. The A2UI formatting step introduces a smaller but consistent further Recall reduction (Δ₂ᴿ = −0.0266), consistent with hypothesis H-C that the JSON schema is a secondary loss point. End-to-end fidelity from R₀ to R₂ shows ΔF1 = +0.0133 overall, with ΔRecall = −0.0571 reflecting a net compression effect across both transformation stages.
 
 ---
 
@@ -232,7 +231,7 @@ A natural extension of this work is to evaluate R₂ not through its serialised 
 
 ## 7. Conclusions
 
-We introduced _layer-wise fidelity scoring_ as an evaluation protocol for multi-layer agentic pipelines that terminate in a structured UI. Applied to a software documentation Q&A system built on MCP+A2A+A2UI, our results show [PLACEHOLDER: one-sentence summary of main finding]. The protocol is lightweight — requiring only BERTScore and no human raters — reusable across domains, and exposes intra-pipeline quality dynamics that are invisible to black-box evaluation. By releasing our test set and scoring harness, we aim to provide a practical tool for the growing community building on standardised agent protocols such as MCP and A2A.
+We introduced _layer-wise fidelity scoring_ as an evaluation protocol for multi-layer agentic pipelines that terminate in a structured UI. Applied to a software documentation Q&A system built on MCP+A2A+A2UI, our results show that A2A synthesis improves mean BERTScore F1 by +0.024 through a Precision gain (+0.071) that more than offsets a Recall drop (−0.031), while A2UI formatting introduces a further Recall reduction (−0.027) at a modest additional F1 cost of −0.010 — together confirming that each layer of the MCP→A2A→A2UI stack makes a distinct and measurable contribution to information fidelity. The protocol is lightweight — requiring only BERTScore and no human raters — reusable across domains, and exposes intra-pipeline quality dynamics that are invisible to black-box evaluation. By releasing our test set and scoring harness, we aim to provide a practical tool for the growing community building on standardised agent protocols such as MCP and A2A.
 
 ---
 

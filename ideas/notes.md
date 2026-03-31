@@ -1,6 +1,6 @@
 ## MCP strengths, weaknesses, advancements, innovations
 
-- building on strengths, acknowledging weaknesses and hardening weaknesses using best practices and new usage patterns (e.g. code execution with MCP, introducing code as reusable functions using skills
+- building on strengths, acknowledging weaknesses and hardening weaknesses using best practices and new usage patterns (e.g. code execution with MCP, introducing code as reusable functions using skills; https://blog.cloudflare.com/code-mode/ ; https://www.anthropic.com/engineering/code-execution-with-mcp
 
 - [What's the relation of this to MCP?]using compaction, sub-agent arcitecutre and agentic memory as structured note taking outside of the context window, to optimize context delivery to maximize the likelyhood of the desired outcome: https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
 
@@ -26,7 +26,19 @@ MCP already de-facto. Question is how to increase MCP maturity? What should be t
 
 - Phased Adoption Roadmap for Agent Interoperability, MCP sits in stage 1, well-suited for use cases focused on tool invocation, deterministic execution, and typed input/output. This stage establishes a foundation for context enrichment in single-model systems.
 
-- The A survey on model context protocol: Architecture, state-of-the-art, challenges and future directions paper tackes the state-of-the-art MCP implementations, but what are the state-of-the-art end-to-end agentic AI and MCP interactions ((e.g. code execution with MCP, introducing code as reusable functions using skills)?
+- The A survey on model context protocol: Architecture, state-of-the-art, challenges and future directions paper tackes the state-of-the-art MCP implementations, but what are the state-of-the-art end-to-end agentic AI and MCP interactions ((e.g. code execution with MCP -- introducing code as reusable functions using skills, hardening MCP interaction with context engineering?)?
+
+- Multi-model support for MCP state-of-the-art implementations and end-to-end agentic AI interactions?
+
+- in a most recent study Mar 2026 (How are AI agents used? Evidence from 177,000 MCP tools) Stein evaluated 177,436 agent tools created from 11/2024 to 02/2026 by monitoring public Model Context Protocol (MCP) server repositories, the current predominant standard for agent tools. Stressing that MCP is considered as the predominant agent tool. Still the study states that MCP repositories are just one way in which developers distribute tools for AI agents, and our analysis of these epositories may not capture the full breadth of the action space available to agents in practice. Developers may build custom integrations, use proprietary internal tooling, or distribute tools through channels not covered by our data sources. As such, our results represent a lower bound on the actions available to AI agents, rather than aiming to be comprehensive.
+
+- AI Agent stack and where MCP sits: https://www.reddit.com/r/Realms_of_Omnarai/comments/1qes0gn/the_emerging_ai_agent_stack_key_players_and_their/
+
+- The protocol stack of AI agents and where MCP sits: https://medium.com/@jeevitha.m/the-protocol-stack-of-ai-agents-56ab644f47b3 ; https://subhadipmitra.com/blog/2026/agent-protocol-stack/
+
+- What happened in a year for MCP: https://blog.modelcontextprotocol.io/posts/2025-11-25-first-mcp-anniversary/
+
+- MCP maturity model: https://subhadipmitra.com/blog/2025/mcp-maturity-model/#
 
 - Relevant work on MCP security aspect: Adversa AI published a taxonomy of 25 MCP vulnerability categories. VentureBeat reported on Pynt’s research showing that deploying just ten MCP plugins creates a 92% probability of exploitation. OWASP published an MCP-specific Top 10. And a supply chain worm called Shai-Hulud 2.0 re-emerged in November specifically targeting developer pipelines that use MCP.
 
