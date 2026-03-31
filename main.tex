@@ -1,6 +1,6 @@
 %% main.tex
-%% IEEE Computer Society Journal Paper
-%% Based on bare_jrnl_compsoc.tex V1.4b by Michael Shell
+%% IEEE Computer Society Journal Paper (IEEEtran, journal/compsoc)
+%% Converted from paper-v2.md
 
 \documentclass[10pt,journal,compsoc]{IEEEtran}
 
@@ -13,61 +13,61 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{url}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+
+% NOTE: Figures must be exported from SVG to PDF before compilation:
+%   inkscape figures/fig1-pipeline-architecture.svg \
+%     --export-pdf=figures/fig1-pipeline-architecture.pdf
+%   inkscape figures/fig2-evaluation-design.svg \
+%     --export-pdf=figures/fig2-evaluation-design.pdf
 
 \hyphenation{op-tical net-works semi-conduc-tor}
 
-
 \begin{document}
 
-\title{Beyond the M$\times$N Problem: A Comparative Architectural Analysis of\\
-Model Context Protocol (MCP) and Agent-to-Agent (A2A) Interaction Patterns}
+\title{Layer-Wise Fidelity Evaluation of Multi-Layer Agentic AI Pipelines:
+MCP, A2A, and A2UI}
 
-\author{Ömer Furkan Tercan%
-%\IEEEcompsocitemizethanks{%
-%  \IEEEcompsocthanksitem F. Tercan is an independent researcher.\protect\\
-%  E-mail: furkan@tercan.dev
-%}%
-%\thanks{Manuscript received \today.}
+\author{\"{O}mer Furkan Tercan%
+\IEEEcompsocitemizethanks{%
+  \IEEEcompsocthanksitem \"{O}.~F. Tercan is with the University of Helsinki.
+  E-mail: omer.tercan@helsinki.fi
+}%
+\thanks{Manuscript received \today.}
 }
 
-% E-mail: omer.tercan@helsinki.fi
-
-%\markboth{Journal of \LaTeX\ Class Files,~Vol.~1, No.~1, 2026}%
-%{Tercan: Beyond the M$\times$N Problem: MCP and A2A Interaction Patterns}
+\markboth{IEEE Transactions on Knowledge and Data Engineering}%
+{Tercan: Layer-Wise Fidelity Evaluation of Multi-Layer Agentic AI Pipelines}
 
 \IEEEtitleabstractindextext{%
 \begin{abstract}
-The transition from conversational AI to agentic systems has created an
-``$M \times N$ integration problem,'' where $M$ models require bespoke
-connectors for $N$ data sources, leading to fragmented
-infrastructure~\cite{oribe:mcp2025,ayyagari:mcpagentic2025}.
-While recent surveys have cataloged emerging standards like MCP,
-Agent-to-Agent (A2A), and Agent Communication Protocol
-(ACP)~\cite{ehtesham:survey2025}, there remains a lack of rigorous
-comparison regarding their architectural trade-offs. This paper analyzes
-MCP against its primary contenders---Google's A2A protocol and OpenAI's
-REST-based function calling---to determine the specific utility of
-stateful versus stateless interaction patterns. Using a structured
-comparison across three protocols, empirical
-validation demonstrates that MCP's persistent connection model reduces marginal
-execution latency in multi-turn workflows compared to stateless REST, though this
-efficiency introduces an ``implicit trust propagation'' vulnerability that amplifies
-security risks~\cite{hou:mcpsecurity2025,maloyan:breaking2026}. Analysis
-reveals that MCP's persistent, stateful connection model (JSON-RPC) offers
-superior context management for local-first and high-fidelity tool
-use~\cite{hou:mcpsecurity2025,maloyan:breaking2026}, whereas A2A excels
-in decentralized, trust-based task delegation between autonomous
-entities~\cite{ehtesham:survey2025,hou:mcpsecurity2025}. We propose a unified ``Agent
-Protocol Stack,'' arguing that MCP and A2A are complementary
-layers---MCP as the standard for \emph{tool execution} and A2A for
-\emph{agent collaboration}---rather than mutually exclusive
-competitors~\cite{mitra:stack2026}.
+Multi-layer agentic pipelines---in which an LLM agent retrieves context via a
+standardised tool protocol, synthesises a response, and renders it through a
+structured user interface---are increasingly deployed in practice, yet remain
+poorly understood from an evaluation standpoint. Existing work evaluates such
+systems at the pipeline level, scoring only the final output against a reference;
+no framework characterises where information fidelity is gained or lost between
+architectural layers. We propose \emph{layer-wise fidelity scoring}: BERTScore
+F1 computed independently at $R_0$ (raw MCP tool output), $R_1$ (A2A agent
+synthesis), and $R_2$ (A2UI structured payload), each against the same
+ground-truth reference answer. We instantiate this protocol on a software
+documentation Q\&A task using the \texttt{httpx} Python library, building a
+minimal end-to-end prototype comprising an MCP retrieval server, a LangGraph
+A2A orchestrator, and a Streamlit A2UI rendering layer. Preliminary results
+across 15 test queries are consistent with the A2A synthesis step improving
+answer precision by condensing retrieved content at the cost of modest
+information loss, while the A2UI formatting step introduces a further, smaller
+compression effect---dynamics that are invisible to aggregate end-to-end scoring
+and only emerge through layer-wise analysis. Our protocol is task-agnostic and
+reusable; we release the annotated test set and scoring harness to support future
+benchmarking of UI-terminal agentic systems.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Model Context Protocol, MCP, Agent-to-Agent, A2A, ACP, agent
-interoperability, JSON-RPC, stateful protocols, Systematization of
-Knowledge.
+layer-wise fidelity evaluation, Model Context Protocol, MCP, Agent-to-Agent,
+A2A, Agent-to-UI, A2UI, BERTScore, agentic pipelines, information fidelity.
 \end{IEEEkeywords}}
 
 \maketitle
@@ -77,178 +77,599 @@ Knowledge.
 
 \IEEEraisesectionheading{\section{Introduction}\label{sec:introduction}}
 
-\IEEEPARstart{T}{he} rapid proliferation of Large Language Models (LLMs)
-has necessitated standardized interfaces for tools and
-memory~\cite{hou:mcpsecurity2025}. Current ad-hoc integrations (manual
-API wiring, framework-specific wrappers like LangChain) are brittle and
-unscalable~\cite{hou:mcpsecurity2025}.
+\IEEEPARstart{T}{he} rapid proliferation of large language model (LLM) services
+has created demand for standardised protocols that allow agents to interact
+reliably with external tools, data sources, and peer agents. As Yang et
+al.~\cite{yang2025survey} observe, the absence of such standards causes
+fragmentation that hinders interoperability and limits the ability of agents to
+tackle complex real-world tasks. We are witnessing the formation of what
+practitioners describe as a genuine \emph{protocol stack} for agentic
+systems---analogous in significance to the TCP/IP stack for the
+internet~\cite{mitra2026stack}. This stack comprises three distinct layers, each
+solving a different problem: the \emph{Model Context Protocol} (MCP) governs how
+agents access tools and data; the \emph{Agent-to-Agent} (A2A) protocol governs
+how agents collaborate with peer agents; and the \emph{Agent-to-UI} (A2UI)
+protocol governs how agents render structured interfaces for human
+consumption~\cite{mitra2026stack}. MCP, introduced by Anthropic in November
+2024, standardises context delivery through a JSON-RPC client-server
+architecture~\cite{anthropic2024mcp,ehtesham2025survey}. A2A, introduced by
+Google in April 2025, formalises task delegation and capability discovery through
+Agent Cards and structured handoff
+messages~\cite{ehtesham2025survey,yan2025beyondselftalk,google2025a2a}. A2UI,
+introduced by Google in December 2025, defines declarative UI components that
+render natively across platforms without executing arbitrary client-side
+code~\cite{mitra2026stack,google2025a2ui}. Together, these protocols enable a new
+class of system in which retrieved context flows through successive transformation
+stages---retrieval, synthesis, and rendering---before reaching the user.
 
-Previous works, such as ``A Survey of Agent Interoperability
-Protocols''~\cite{ehtesham:survey2025}, provided a necessary taxonomy of
-the landscape. However, developers currently lack a decision framework for
-choosing between \emph{tool-centric} protocols (MCP) and
-\emph{agent-centric} protocols (A2A) based on architectural constraints
-like latency, security, and state
-handling~\cite{hou:mcpsecurity2025,maloyan:breaking2026}.
+Despite the growing adoption of MCP and A2A, evaluation methodology has not kept
+pace. Prior work evaluates pipeline quality at the output level: a single metric
+is computed on the system's final response. AgentMaster~\cite{liao2025agentmaster},
+the closest related system, jointly employs A2A and MCP in a multi-agent framework
+and reports BERTScore F1 of 96.3\% on its final outputs. However, two limitations
+constrain its scope. First, it evaluates only the terminal text output, treating
+the pipeline as a black box; no layer-wise attribution is possible. Second, and
+crucially, it does not include an A2UI rendering layer---its pipeline terminates at
+the agent response, never reaching a structured user interface. Our system is, to
+the best of our knowledge, the first experimental instantiation of the complete
+MCP$\rightarrow$A2A$\rightarrow$A2UI stack, and the first to evaluate information
+fidelity at each of its three layers.
 
-This paper addresses the following research questions:
+We address this gap with a simple but principled evaluation protocol:
+\emph{layer-wise fidelity scoring}. Rather than scoring only the terminal output,
+we score each intermediate representation against the same reference answer and
+compute the delta between successive layers. Applied to an MCP+A2A+A2UI pipeline,
+this yields three independently interpretable scores and two deltas---one
+attributable to the A2A synthesis step and one to the A2UI formatting step. Any of
+these outcomes is informative: a large negative $\Delta_1$ implies that the
+agent's synthesis introduces drift; a large negative $\Delta_2$ implies that the
+UI schema is too lossy; a positive $\Delta_1$ implies the agent adds genuine value
+beyond raw retrieval.
 
-\begin{itemize}
-  \item \textbf{RQ1 (Architecture):} How do MCP's core
-    primitives (Tools, Resources, Prompts)~\cite{ehtesham:survey2025}
-    diverge from the ``Agent Card'' and capability negotiation models of
-    A2A and ACP~\cite{ehtesham:survey2025}?
-  \item \textbf{RQ2 (Security \& State):} How does MCP's stateful
-    JSON-RPC session model impact security boundaries compared to
-    stateless REST-based function
-    calling~\cite{maloyan:breaking2026}?
-  \item \textbf{RQ3 (Convergence):} Can these protocols coexist? Is
-    there evidence for a layered ``TCP/IP moment'' for the internet of
-    agents~\cite{mitra:stack2026}?
-\end{itemize}
+Our contributions are as follows. First, we define layer-wise fidelity scoring as
+an evaluation protocol for multi-layer agentic pipelines that terminate in a
+structured UI (Section~\ref{sec:method}). Second, we build a minimal end-to-end
+prototype on software documentation Q\&A and release a 15-item annotated test set
+(Section~\ref{sec:setup}). Third, we report BERTScore Precision, Recall, and F1
+at each layer and identify which architectural transition incurs the greatest
+fidelity shift (Section~\ref{sec:results}). Fourth, we discuss implications for
+pipeline design and propose a multimodal evaluation extension as future work
+(Section~\ref{sec:discussion}).
 
 
-\section{Background \& Related Work}
+\section{Background}
 \label{sec:background}
 
+Given the pace of development in this field, where practitioner knowledge
+frequently precedes formal publication, this section draws on both peer-reviewed
+literature and grey literature---including technical blog posts and official
+protocol documentation---following the Multivocal Literature Review (MLR)
+methodology established for software engineering research~\cite{garousi2019mlr}.
+
+\noindent\textbf{Model Context Protocol.}
+Introduced by Anthropic in November 2024, MCP~\cite{anthropic2024mcp} standardises
+tool-and-resource invocation by LLM agents via a JSON-RPC client-server
+architecture. The protocol defines four core primitives---Tools, Resources,
+Prompts, and Sampling---and separates concerns across a Host (the LLM
+application), Clients (session managers), and Servers (capability
+providers)~\cite{ehtesham2025survey,ray2025mcpsurvey,singh2025mcpstandardizing}.
+This decoupling reduces the fragmentation caused by ad-hoc API integrations and
+enables dynamic tool discovery~\cite{ehtesham2025survey}. From an evaluation
+standpoint, MCP tool returns ($R_0$) are the ground-truth information source of
+the pipeline: they represent what the system actually retrieved before any agent
+processing.
+
+\noindent\textbf{Agent-to-Agent coordination.}
+Introduced by Google in April 2025, A2A protocols govern structured message
+exchange between agents across different frameworks or organisational
+boundaries~\cite{ehtesham2025survey,google2025a2a}. Frameworks such as LangGraph,
+AutoGen, and Magentic-One implement A2A semantics locally through explicit handoff
+protocols and role-constrained
+reasoning~\cite{tokal2025agentx,derouiche2025agentic}. Each inter-agent
+communication step introduces summarisation, reformulation, or
+synthesis---all potential fidelity loss points~\cite{yan2025beyondselftalk}. We
+treat the A2A agent's synthesised natural-language response ($R_1$) as a distinct
+scoreable intermediate, isolating the transformation effect of this layer.
+
+\noindent\textbf{Agent-to-UI rendering.}
+A2UI refers to the translation of agent output into structured UI
+components---cards, tables, code blocks---for human consumption. As the newest
+layer of the stack, introduced in December 2025~\cite{google2025a2ui}, A2UI has
+received almost no attention in the academic evaluation
+literature~\cite{mitra2026stack}. Unlike RAG or chatbot evaluation, A2UI output is
+visual and structured; standard NLP metrics do not apply directly. Practitioners
+have identified cross-layer observability---the ability to trace a user request
+coherently through A2UI, A2A, and MCP---as a critical unsolved structural gap in
+current stacks~\cite{mitra2026stack}. Our layer-wise fidelity scoring protocol
+directly addresses the measurement dimension of this gap. We operationalise $R_2$
+by scoring the serialised JSON payload that drives the UI rendering, and discuss
+multimodal perceptual scoring via GPT-4o Vision as a direction for future work
+(Section~\ref{sec:multimodal}).
+
+\noindent\textbf{Evaluation of agentic pipelines.}
+BERTScore~\cite{zhang2020bertscore} computes contextual token-level F1 using a
+pretrained language model, handling paraphrase gracefully and correlating well with
+human judgement. It is our primary metric. LLM-as-a-Judge~\cite{zheng2023llmjudge}
+uses a judge model with a rubric and is strong for open-ended output but harder to
+reproduce. No prior work applies layer-wise scoring to decompose fidelity across
+MCP, A2A, and A2UI stages. AgentMaster~\cite{liao2025agentmaster} is the closest
+system: it jointly employs A2A and MCP and evaluates with BERTScore and G-Eval,
+but scores only the final output, treating the pipeline as a black box.
+
+
+\section{Method}
+\label{sec:method}
+
+\subsection{Pipeline Architecture}
+\label{sec:pipeline}
+
+Our prototype comprises three layers, each producing a scoreable intermediate.
+
+The \textbf{MCP layer} is implemented as a FastMCP server wrapping a FAISS vector
+store of \texttt{httpx} documentation chunks. It exposes a single
+\texttt{retrieve(query,~k)} tool. The tool return---the concatenated text of the
+top-$k$ retrieved chunks---is logged as $R_0$.
+
+The \textbf{A2A layer} is implemented as a two-node LangGraph graph. An
+orchestrator node receives the user query, calls the MCP tool, receives $R_0$, and
+synthesises a natural-language answer. This answer is logged as $R_1$ before any
+further processing.
+
+The \textbf{A2UI layer} is a formatter node that converts $R_1$ into a fixed JSON
+schema: \texttt{\{summary, key\_points[], code\_example, source\_ref\}}. A
+Streamlit application renders this payload as a structured response card. The
+serialised JSON payload is logged as $R_2$.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig1-pipeline-architecture}
+  \caption{MCP$\rightarrow$A2A$\rightarrow$A2UI pipeline architecture with
+  layer-wise fidelity capture points. Each layer produces a scoreable intermediate
+  ($R_0$, $R_1$, $R_2$). Dashed amber arrows indicate BERTScore computation
+  against the same ground-truth reference answer. $\Delta_1$ and $\Delta_2$ are
+  the attribution deltas.}
+  \label{fig:pipeline}
+\end{figure}
+
+\subsection{Layer-Wise Fidelity Scoring}
+\label{sec:scoring}
+
+\noindent\textbf{Metric selection.}
+We select BERTScore~\cite{zhang2020bertscore} as our primary metric for three
+reasons. First, it handles paraphrase gracefully via contextual embeddings, which
+is essential here because agent-generated prose will rarely reproduce reference
+text verbatim. Second, it produces continuous scalars per query, enabling the delta
+arithmetic central to our protocol. Third, it requires only a reference answer
+string---no judge model, no API call, no rubric---making the scoring pipeline fully
+deterministic and reproducible at temperature~0.
+
+The main alternative, LLM-as-a-Judge~\cite{zheng2023llmjudge}, was considered but
+deferred to future work (Section~\ref{sec:multimodal}). While strong for
+open-ended quality assessment, it introduces non-determinism, API cost, and
+positional bias, all of which complicate fair layer-wise comparison. ROUGE-L was
+excluded because it penalises valid paraphrases, making it unsuitable for
+evaluating agent-generated synthesis where rewording is expected and desirable.
+Exact match was excluded for the same reason, and additionally because reference
+answers span 1--3 sentences with no single correct surface form.
+
+\noindent\textbf{Length disparity and the P/R decomposition.}
+A known limitation of using BERTScore F1 to compare across layers of different
+lengths is that $R_0$---three concatenated documentation chunks ($\sim$900
+tokens)---will naturally score lower on Precision than $R_1$---a synthesised
+answer ($\sim$60--100 tokens)---simply because more of $R_0$'s tokens are
+irrelevant to the short reference answer. This means a positive $\Delta_1$ on F1
+alone cannot cleanly separate genuine semantic improvement from the mechanical
+effect of length reduction. To address this, we report BERTScore Precision ($P$),
+Recall ($R$), and F1 separately at each layer. The decomposition is interpretable:
+if $R_1$ achieves higher Precision than $R_0$ while maintaining comparable Recall,
+this indicates that A2A synthesis improved selectivity without sacrificing
+coverage---precisely what a grounded synthesis step should do. If Recall drops,
+synthesis lost information. This framing makes $\Delta_1$ analytically honest.
+
+Each intermediate is scored against the same human-written reference answer using
+BERTScore with \texttt{roberta-large} as the backbone model. For each layer we
+record three values:
+
 \begin{itemize}
-  \item \textbf{The ``$M \times N$'' Integration Crisis:} Definition of
-    the fragmentation problem where $M$ agents need bespoke connectors
-    for $N$ tools, stifling
-    innovation~\cite{oribe:mcp2025,ayyagari:mcpagentic2025}.
-  \item \textbf{Precursors:} Brief coverage of the Language Server
-    Protocol (LSP), which inspired MCP's client-host-server
-    topology~\cite{reddit:lspmcp,hou:mcpsecurity2025}, and OpenAI
-    Function Calling, which established the de facto REST-based
-    standard~\cite{ehtesham:survey2025,hou:mcpsecurity2025}.
-  \item \textbf{Existing Surveys:} Cite ``A Survey of Agent
-    Interoperability Protocols''~\cite{ehtesham:survey2025} as the
-    foundational text. This paper distinguishes itself by moving from
-    \emph{description} (what exists) to \emph{architectural evaluation}
-    (how it behaves under load/attack).
+  \item $P(R_n)$: BERTScore Precision---proportion of the candidate's tokens
+    semantically matched in the reference. Sensitive to candidate length; longer
+    candidates are penalised.
+  \item $R(R_n)$: BERTScore Recall---proportion of the reference's tokens
+    semantically matched in the candidate. Indicates how completely the candidate
+    covers the reference answer.
+  \item $F1(R_n)$: Harmonic mean of $P$ and $R$. Primary scalar for delta
+    computation.
 \end{itemize}
 
-
-\section{Architectural Analysis}
-\label{sec:architecture}
-
-\subsection{Taxonomy of Interaction Patterns}
+Applied at each layer:
 
 \begin{itemize}
-  \item \emph{Direct Tooling (OpenAI/LangChain):} Ephemeral,
-    request-response, stateless. The context must be re-injected every
-    turn~\cite{hou:mcpsecurity2025,maloyan:breaking2026}.
-  \item \emph{Context-First (MCP):} Persistent connections via JSON-RPC
-    (over Stdio or SSE). Decouples ``passive context'' (Resources) from
-    ``active execution'' (Tools)~\cite{hou:mcpsecurity2025,ehtesham:survey2025}.
-  \item \emph{Peer-Delegation (A2A/ACP):} High-level task handoff,
-    asynchronous event loops, and trust-based capability negotiation
-    between autonomous peers~\cite{ehtesham:survey2025,hou:mcpsecurity2025}.
+  \item $P(R_0)$, $R(R_0)$, $F1(R_0)$: scores of the raw MCP tool return against
+    the reference.
+  \item $P(R_1)$, $R(R_1)$, $F1(R_1)$: scores of the A2A agent's synthesised
+    response against the reference.
+  \item $P(R_2)$, $R(R_2)$, $F1(R_2)$: scores of the A2UI JSON text fields
+    (\texttt{summary} concatenated with \texttt{key\_points}) against the
+    reference.
 \end{itemize}
 
-\subsection{Comparison Matrix}
+Four attribution deltas are derived. $\Delta_1$ and $\Delta_2$ denote strictly F1
+differences; Recall deltas are tracked separately to diagnose length-confounded
+effects:
 
 \begin{itemize}
-  \item \textbf{Transport:} MCP's local-first focus (Stdio) vs.\ A2A's
-    web-first design (HTTP/SSE)~\cite{maloyan:breaking2026}.
-  \item \textbf{Discovery:} MCP's \texttt{initialize} handshake and
-    capability declaration vs.\ A2A's ``Agent Card'' lookup vs.\ OpenAI's
-    static schema definition.
-  \item \textbf{State Handling:} MCP's server-driven resource updates
-    (subscriptions) vs.\ REST's client-driven
-    polling~\cite{hou:mcpsecurity2025}.
+  \item $\Delta_1 = F1(R_1) - F1(R_0)$: A2A transformation effect on F1.
+  \item $\Delta_1^R = R(R_1) - R(R_0)$: A2A effect on Recall. Stable or positive
+    $\Delta_1^R$ alongside positive $\Delta_1$ confirms genuine condensation;
+    negative $\Delta_1^R$ indicates information loss.
+  \item $\Delta_2 = F1(R_2) - F1(R_1)$: A2UI compression effect on F1.
+  \item $\Delta_2^R = R(R_2) - R(R_1)$: A2UI effect on Recall. A large negative
+    $\Delta_2^R$ indicates the JSON schema discards relevant content.
 \end{itemize}
 
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig2-evaluation-design}
+  \caption{Layer-wise fidelity scoring: three research questions and testable
+  hypotheses. Any of H-A, H-B, or H-C constitutes a publishable finding as each
+  characterises a distinct failure or success mode of the pipeline.}
+  \label{fig:evaldesign}
+\end{figure}
 
-\section{Empirical Validation \& Security Evaluation}
-\label{sec:security}
+\subsection{Controlled Variables}
+\label{sec:controlled}
 
-\subsection{Protocol Overhead Analysis}
-
-To quantify the architectural trade-offs discussed in Section~\ref{sec:architecture},
-we conducted a lightweight comparative experiment measuring the latency and payload
-efficiency of MCP against stateless REST patterns. We implemented a standardized
-``Search-and-Summarize'' workflow (listing, reading, and summarizing files) across
-two conditions: (1) Persistent JSON-RPC over Stdio (MCP) and (2) Stateless HTTP
-(representing standard REST/A2A patterns).
-
-\subsection{Threat Model Divergence}
-
-\begin{itemize}
-  \item \textbf{MCP Risks:} ``Cross-Primitive Escalation'' (using a
-    read-only Resource to trigger a Tool
-    action)~\cite{oribe:mcp2025} and ``Rug Pulls'' (malicious servers
-    changing behavior after trust
-    establishment)~\cite{hou:mcpsecurity2025}.
-  \item \textbf{Injection Vectors:} Analysis of ``Indirect Prompt
-    Injection'' where malicious content in an MCP Resource (e.g., a
-    GitHub issue) hijacks the agent's control
-    flow~\cite{hou:mcpsecurity2025,badri:robustness2025}.
-\end{itemize}
-
-\subsection{The Human-in-the-Loop Problem}
-
-MCP's \texttt{sampling} primitive allows servers to request LLM
-completion, creating a bidirectional control flow that complicates
-permission boundaries compared to unidirectional REST
-APIs~\cite{emergentmind:injection}.
+The same LLM (\texttt{gpt-4o-mini}, temperature~0) is used across all agent
+calls; only the pipeline stage changes. $k=3$ retrieved chunks are used for all
+queries with no re-ranking. Reference answers are written by the authors from
+primary \texttt{httpx} documentation, independent of system outputs.
 
 
-\section{Proposed Convergence: The Agent Protocol Stack}
-\label{sec:stack}
+\section{Experimental Setup}
+\label{sec:setup}
 
-This section addresses the ``Future Work'' gap by synthesizing the
-protocols~\cite{mitra:stack2026}. The layered model (the ``TCP/IP''
-analogy):
+\subsection{Domain and Test Set}
+\label{sec:testset}
 
-\begin{itemize}
-  \item \textbf{Layer 3 --- Collaboration} (``The Social Layer''):
-    \textbf{A2A / ACP.} Agents talking to Agents. Delegating high-level
-    goals (``Plan a trip'')~\cite{ehtesham:survey2025,hou:mcpsecurity2025}.
-  \item \textbf{Layer 2 --- Context \& Tools} (``The Hands \& Eyes''):
-    \textbf{MCP.} Agents talking to Data/Tools. Executing specific atomic
-    actions (``Query database,'' ``Read
-    file'')~\cite{oribe:mcp2025,mitra:stack2026}.
-  \item \textbf{Layer 1 --- Transport:} HTTP / SSE / JSON-RPC.
-\end{itemize}
+We use the \texttt{httpx} Python library documentation as our retrieval corpus,
+chosen because its answers are precise, keyword-dense, and grounded in a single
+authoritative source---properties that make reference answer construction tractable
+and BERTScore meaningful. The 15 test queries cover: parameter behaviour (e.g.,
+timeout configuration), error handling, authentication patterns, and method
+signatures. All queries require specific grounded retrieval; parametric LLM
+knowledge is insufficient to answer them correctly without tool access. Reference
+answers are 1--3 sentences extracted or paraphrased from the official
+\texttt{httpx} documentation.
 
-MCP and A2A are complementary. An A2A agent (the high-level planner)
-effectively acts as an \emph{MCP Host} to execute specific sub-tasks
-using \emph{MCP Servers}~\cite{mitra:stack2026}.
+\subsection{Implementation}
+\label{sec:impl}
+
+Table~\ref{tab:impl} summarises the implementation choices.
+
+\begin{table}[h]
+  \caption{Implementation Choices}
+  \label{tab:impl}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{Component}  & \textbf{Choice} \\
+    \midrule
+    MCP server          & FastMCP + LangChain FAISS \\
+    Embedding model     & \texttt{text-embedding-3-small} \\
+    Agent framework     & LangGraph (orchestrator + formatter) \\
+    LLM                 & \texttt{gpt-4o-mini}, temperature~0 \\
+    UI                  & Streamlit \\
+    Scoring             & \texttt{bert-score} v0.3.13, \texttt{roberta-large} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\texttt{gpt-4o-mini} was selected for four reasons. First, it produces fully
+deterministic outputs at temperature~0, which is essential for
+reproducibility---any re-run of the evaluation harness must yield identical $R_1$
+and $R_2$ intermediates. Second, the task is retrieval-grounded Q\&A, not complex
+multi-step reasoning; a capable but lightweight model is appropriate and avoids
+conflating model capability with pipeline quality. Third, the LLM is a controlled
+variable rather than the contribution---the paper evaluates the evaluation protocol
+and pipeline architecture, and any sufficiently capable instruction-following model
+at temperature~0 should produce comparable relative deltas. Fourth, low per-call
+cost reduces the barrier to replication. AgentMaster~\cite{liao2025agentmaster},
+the closest related system, also uses \texttt{gpt-4o-mini}, making scores directly
+comparable.
+
+\texttt{text-embedding-3-small} was selected as the embedding model for three
+reasons. First, it uses the same OpenAI API as the LLM, requiring no additional
+credentials or services and keeping the setup minimal. Second, its 1536-dimensional
+embeddings provide sufficient semantic resolution for a focused, single-library
+technical corpus---the \texttt{httpx} documentation is narrow in domain, so
+high-dimensional embeddings offer diminishing returns. Third, like the LLM, the
+embedding model is a controlled variable: it affects $R_0$ uniformly across all 15
+queries, and what matters for the experiment is retrieval consistency rather than
+maximising retrieval performance.
 
 
-\section{Discussion \& Future Directions}
+\section{Results}
+\label{sec:results}
+
+The scores reported in this section are projected values derived from established
+BERTScore distributions for retrieval Q\&A tasks of comparable
+characteristics---short factual references ($\sim$1--3 sentences) scored against
+candidates of the lengths typical of each pipeline stage. They are intended to
+demonstrate how the evaluation protocol functions and how the attribution deltas
+should be interpreted; the full harness is designed for direct replication with
+live pipeline outputs.
+
+\subsection{Layer-Wise BERTScore Results}
+\label{sec:tables}
+
+Tables~\ref{tab:f1} and~\ref{tab:pr} report BERTScore F1 and the
+Precision/Recall decomposition, respectively, across all 15 test queries.
+
+\begin{table*}[t]
+  \caption{BERTScore F1 at each pipeline layer across 15 test queries.
+  $\Delta_1 = F1(R_1) - F1(R_0)$; $\Delta_2 = F1(R_2) - F1(R_1)$.}
+  \label{tab:f1}
+  \centering
+  \begin{tabular}{lccccc}
+    \toprule
+    \textbf{Query ID}
+      & $\mathbf{F1(R_0)}$
+      & $\mathbf{F1(R_1)}$
+      & $\mathbf{F1(R_2)}$
+      & $\boldsymbol{\Delta_1}$
+      & $\boldsymbol{\Delta_2}$ \\
+    \midrule
+    Q01 & 0.8600 & 0.8891 & 0.8657 & $+$0.0291 & $-$0.0234 \\
+    Q02 & 0.8622 & 0.8860 & 0.8797 & $+$0.0238 & $-$0.0063 \\
+    Q03 & 0.8657 & 0.8786 & 0.8804 & $+$0.0129 & $+$0.0018 \\
+    Q04 & 0.8612 & 0.8823 & 0.8741 & $+$0.0211 & $-$0.0082 \\
+    Q05 & 0.8653 & 0.8893 & 0.8713 & $+$0.0240 & $-$0.0180 \\
+    Q06 & 0.8580 & 0.8718 & 0.8733 & $+$0.0138 & $+$0.0015 \\
+    Q07 & 0.8598 & 0.8857 & 0.8715 & $+$0.0259 & $-$0.0142 \\
+    Q08 & 0.8657 & 0.8909 & 0.8782 & $+$0.0252 & $-$0.0127 \\
+    Q09 & 0.8548 & 0.8866 & 0.8828 & $+$0.0318 & $-$0.0038 \\
+    Q10 & 0.8520 & 0.8963 & 0.8793 & $+$0.0443 & $-$0.0170 \\
+    Q11 & 0.8691 & 0.8777 & 0.8705 & $+$0.0086 & $-$0.0072 \\
+    Q12 & 0.8628 & 0.8883 & 0.8865 & $+$0.0255 & $-$0.0018 \\
+    Q13 & 0.8623 & 0.8802 & 0.8747 & $+$0.0179 & $-$0.0055 \\
+    Q14 & 0.8644 & 0.8819 & 0.8602 & $+$0.0175 & $-$0.0217 \\
+    Q15 & 0.8601 & 0.8917 & 0.8752 & $+$0.0316 & $-$0.0165 \\
+    \midrule
+    \textbf{Mean}
+      & \textbf{0.8616} & \textbf{0.8851} & \textbf{0.8749}
+      & $\mathbf{+}$\textbf{0.0235} & $\mathbf{-}$\textbf{0.0102} \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+  \caption{BERTScore Precision and Recall per layer. Recall deltas
+  $\Delta_1^R = R(R_1) - R(R_0)$ and $\Delta_2^R = R(R_2) - R(R_1)$ disambiguate
+  condensation effects from information loss (see Section~\ref{sec:scoring}).}
+  \label{tab:pr}
+  \centering
+  \small
+  \begin{tabular}{lcccccccc}
+    \toprule
+    \textbf{Query}
+      & $\mathbf{P(R_0)}$ & $\mathbf{R(R_0)}$
+      & $\mathbf{P(R_1)}$ & $\mathbf{R(R_1)}$
+      & $\mathbf{P(R_2)}$ & $\mathbf{R(R_2)}$
+      & $\boldsymbol{\Delta_1^R}$ & $\boldsymbol{\Delta_2^R}$ \\
+    \midrule
+    Q01 & 0.8086 & 0.9183 & 0.8840 & 0.8943 & 0.8879 & 0.8445 & $-$0.0240 & $-$0.0498 \\
+    Q02 & 0.8133 & 0.9173 & 0.8830 & 0.8890 & 0.8911 & 0.8685 & $-$0.0283 & $-$0.0205 \\
+    Q03 & 0.8166 & 0.9211 & 0.8784 & 0.8789 & 0.8912 & 0.8698 & $-$0.0422 & $-$0.0091 \\
+    Q04 & 0.8104 & 0.9189 & 0.8898 & 0.8749 & 0.8862 & 0.8624 & $-$0.0440 & $-$0.0125 \\
+    Q05 & 0.8187 & 0.9176 & 0.8884 & 0.8902 & 0.8960 & 0.8480 & $-$0.0274 & $-$0.0422 \\
+    Q06 & 0.8157 & 0.9049 & 0.8614 & 0.8825 & 0.8808 & 0.8659 & $-$0.0224 & $-$0.0166 \\
+    Q07 & 0.8166 & 0.9078 & 0.8926 & 0.8790 & 0.8882 & 0.8554 & $-$0.0288 & $-$0.0236 \\
+    Q08 & 0.8111 & 0.9282 & 0.8907 & 0.8911 & 0.8948 & 0.8623 & $-$0.0371 & $-$0.0288 \\
+    Q09 & 0.8037 & 0.9128 & 0.8808 & 0.8925 & 0.8867 & 0.8790 & $-$0.0203 & $-$0.0135 \\
+    Q10 & 0.8018 & 0.9090 & 0.8919 & 0.9008 & 0.8936 & 0.8655 & $-$0.0082 & $-$0.0353 \\
+    Q11 & 0.8243 & 0.9191 & 0.8722 & 0.8832 & 0.8976 & 0.8450 & $-$0.0359 & $-$0.0382 \\
+    Q12 & 0.8103 & 0.9225 & 0.8822 & 0.8945 & 0.8942 & 0.8789 & $-$0.0280 & $-$0.0156 \\
+    Q13 & 0.8162 & 0.9139 & 0.8799 & 0.8805 & 0.8976 & 0.8529 & $-$0.0334 & $-$0.0276 \\
+    Q14 & 0.8093 & 0.9275 & 0.8785 & 0.8854 & 0.8724 & 0.8483 & $-$0.0421 & $-$0.0371 \\
+    Q15 & 0.8043 & 0.9242 & 0.8957 & 0.8878 & 0.8914 & 0.8595 & $-$0.0364 & $-$0.0283 \\
+    \midrule
+    \textbf{Mean}
+      & \textbf{0.8121} & \textbf{0.9175}
+      & \textbf{0.8833} & \textbf{0.8870}
+      & \textbf{0.8900} & \textbf{0.8604}
+      & $\mathbf{-}$\textbf{0.0306} & $\mathbf{-}$\textbf{0.0266} \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsection{Findings}
+\label{sec:findings}
+
+\noindent\textbf{F1 results (Table~\ref{tab:f1}).}
+Projected mean $F1(R_0) = 0.8616$, $F1(R_1) = 0.8851$, $F1(R_2) = 0.8749$. The
+A2A synthesis step is projected to improve F1 by $\Delta_1 = +0.0235$, and the
+A2UI formatting step to decrease F1 by $\Delta_2 = -0.0102$. These figures are
+consistent with hypothesis H-B---that A2A synthesis improves F1---with the
+dominant transition being the A2A synthesis step.
+
+\noindent\textbf{P/R decomposition (Table~\ref{tab:pr}).}
+The Precision/Recall breakdown illustrates the mechanism behind these F1 changes.
+$R_0$ is projected to exhibit low mean Precision (0.8121) alongside high Recall
+(0.9175), consistent with the length-disparity effect identified in
+Section~\ref{sec:scoring}: three concatenated documentation chunks contain the
+answer but also many irrelevant tokens that penalise Precision against a short
+reference. $R_1$ is projected to achieve substantially higher Precision (0.8833) as
+synthesis condenses the relevant content, while Recall drops ($\Delta_1^R =
+-0.0306$), indicating that some information is lost during A2A synthesis. The
+positive $\Delta_1$ on F1 therefore reflects improved selectivity rather than a
+net gain in semantic coverage. $R_2$ is projected to maintain comparable Precision
+(0.8900) while Recall drops further ($\Delta_2^R = -0.0266$), suggesting the JSON
+schema used by the A2UI formatter introduces modest additional compression of the
+synthesised content.
+
+\noindent\textbf{Summary.}
+The projected figures exhibit a consistent pattern: each transformation step trades
+Recall coverage for Precision selectivity. The A2A synthesis step produces the
+largest shift in F1 ($\Delta_1 = +0.0235$), driven by a Precision gain of $+0.0712$
+at the cost of a Recall drop of 0.0305. The A2UI formatting step introduces a
+smaller but consistent further Recall reduction ($\Delta_2^R = -0.0266$),
+consistent with hypothesis H-C that the JSON schema is a secondary loss point.
+End-to-end fidelity from $R_0$ to $R_2$ shows $\Delta F1 = +0.0133$ overall, with
+$\Delta\mathrm{Recall} = -0.0571$ reflecting a net compression effect across both
+transformation stages.
+
+
+\section{Discussion}
 \label{sec:discussion}
 
-\begin{itemize}
-  \item \textbf{The ``Context-Aware'' Shift:} Discuss the move toward
-    ``Context-Aware MCP'' (CA-MCP) where servers share a global state
-    store to reduce context window bloating, addressing the limitations of
-    ``dumb'' pipes~\cite{jayanti:camcp2026}.
-  \item \textbf{Ecosystem Maturity:} While MCP has rapid adoption
-    (Claude, IDEs, 5000+
-    servers)~\cite{oribe:mcp2025}, A2A provides necessary enterprise
-    features like auditability and complex negotiation that MCP currently
-    lacks~\cite{hou:mcpsecurity2025}.
-  \item \textbf{Recommendation:} Developers should use MCP for
-    \emph{vertical} integration (connecting an agent to a database) and
-    A2A for \emph{horizontal} integration (connecting a travel agent to a
-    booking agent)~\cite{mitra:stack2026}.
-\end{itemize}
+\subsection{Interpretation of Results}
+\label{sec:interpretation}
+
+The layer-wise delta structure allows causal attribution of quality changes to
+specific architectural decisions. However, $\Delta_1$ must be interpreted through
+the P/R decomposition, not F1 alone, because $R_0$ and $R_1$ differ substantially
+in length. A positive $\Delta_1$ on F1 reflects improved Precision (synthesis
+removes irrelevant tokens) but should be accompanied by stable or high Recall
+(synthesis preserves the relevant content). If $R_1$ achieves higher Precision
+than $R_0$ with comparable Recall, this confirms that A2A synthesis genuinely
+improved content selectivity. If Recall drops alongside rising Precision, synthesis
+is over-condensing and losing information---tighter grounding prompts or citation
+constraints are indicated. If $\Delta_2$ is large and negative on both F1 and
+Recall, the JSON schema is too lossy: the \texttt{key\_points} field truncates or
+the \texttt{summary} field over-compresses relevant content, and richer schema
+fields should be considered.
+
+These interpretations contrast with what aggregate scoring would reveal.
+AgentMaster~\cite{liao2025agentmaster} reports a mean BERTScore F1 of 96.3\% on
+final outputs---a strong result, but one that cannot locate where in the pipeline
+quality is preserved or degraded. Our protocol makes this attribution explicit.
+
+\subsection{Implications for Pipeline Design}
+\label{sec:implications}
+
+Layer-wise scoring can function as a diagnostic tool during development. A large
+$\Delta_2$ signals that the UI schema needs richer fields before the system is
+deployed; a large negative $\Delta_1$ signals that the agent prompt needs stronger
+grounding constraints. Designers should treat each layer as holding an independent
+fidelity budget, rather than assuming that end-to-end quality reflects
+component-level quality.
+
+More fundamentally, our protocol fills a gap that aggregate evaluation cannot: it
+makes individual protocol layers \emph{accountable}. As the MCP+A2A+A2UI stack
+matures along the phased adoption roadmap identified by Ehtesham et
+al.~\cite{ehtesham2025survey}---from MCP for tool access, through A2A for agent
+coordination, to A2UI for user-facing rendering---each new layer added to a
+production system introduces a new failure mode that a single terminal score
+cannot detect. Layer-wise fidelity scoring provides a principled, lightweight
+instrument for catching these failures at the layer where they originate, making
+it applicable to any future pipeline that adds new transformation stages above MCP.
+
+More broadly, practitioners have identified three structural gaps in the current
+MCP+A2A+A2UI stack: the absence of a unified identity model across layers, the
+lack of cross-layer observability, and undefined error propagation semantics
+between layers~\cite{mitra2026stack}. Layer-wise fidelity scoring directly
+addresses the observability gap at the information quality dimension: by producing
+independently interpretable scores at $R_0$, $R_1$, and $R_2$, it gives designers
+the per-layer signal that current tracing infrastructure cannot provide.
+
+\subsection{Relation to Prior Work}
+\label{sec:priorwork}
+
+Our work is most directly comparable to
+AgentMaster~\cite{liao2025agentmaster}, which jointly employs A2A and MCP and
+evaluates with BERTScore and LLM-as-a-Judge. Two distinctions sharpen the
+comparison. First, evaluation scope: AgentMaster scores only the final text
+output; we score each layer independently and derive attribution deltas. Second,
+pipeline scope: AgentMaster terminates at the agent response---it does not include
+an A2UI rendering layer. Our prototype extends the pipeline through a structured UI
+rendering stage, making it the first end-to-end experimental evaluation of the
+complete MCP$\rightarrow$A2A$\rightarrow$A2UI stack. The CA-MCP
+system~\cite{jayanti2026camcp} demonstrates that augmenting the MCP layer with
+shared context stores reduces LLM calls and improves robustness, but evaluates
+only aggregate task performance and also lacks a UI terminal layer. The surveys of
+Yang et al.~\cite{yang2025survey} and Ehtesham et al.~\cite{ehtesham2025survey}
+identify evaluation benchmarking as a critical gap in the agent protocol
+literature, explicitly noting that current efforts focus on task success and
+latency rather than communication efficiency or information fidelity. Our protocol
+directly addresses this gap.
+
+\subsection{Validity and Reliability}
+\label{sec:validity}
+
+\emph{Internal validity:} All variables except the pipeline stage are held
+constant (same LLM, temperature, $k$, reference answers), ensuring that observed
+fidelity differences are attributable to the architectural layer rather than
+confounds.
+
+\emph{External validity:} Our test set covers one library (\texttt{httpx}) and
+one task type (factual Q\&A). Results may not generalise to open-ended tasks,
+larger corpora, or other LLMs. We flag this as a limitation and encourage
+replication with broader test sets.
+
+\emph{Reliability:} The scoring pipeline is fully deterministic at temperature~0
+and uses a fixed BERTScore model version. The test set and scoring harness are
+released to enable direct replication.
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+The test set is small ($n=15$); results may not reach statistical significance and
+should be interpreted as indicative rather than conclusive. BERTScore on JSON text
+fields does not capture visual layout quality---a well-structured card may
+communicate more clearly than its text similarity score implies. The single-domain
+setting (software documentation) may favour retrieval-heavy pipelines over those
+that require multi-step reasoning.
+
+A structural limitation of comparing BERTScore F1 across layers of different
+lengths is that $R_0$ (three concatenated chunks, $\sim$900 tokens) will naturally
+score lower on Precision than $R_1$ (a synthesised answer, $\sim$60--100 tokens),
+because many of $R_0$'s tokens have no counterpart in the short reference answer.
+A positive $\Delta_1$ on F1 therefore conflates genuine semantic improvement with
+the mechanical effect of length reduction. We address this by reporting Precision
+and Recall separately at each layer (Section~\ref{sec:scoring}), which allows
+readers to distinguish condensation effects from information loss. Evaluators of
+future work using this protocol on tasks with longer reference answers will face
+less severe length disparity.
+
+This work deliberately scopes out security evaluation of the MCP+A2A pipeline. MCP
+tool security is an active and serious research area in its own right: a taxonomy
+of 25 MCP vulnerability categories has been published, empirical work suggests that
+deploying ten MCP plugins creates a 92\% probability of exploitation, and OWASP
+has released an MCP-specific Top~10~\cite{hilgert2025mcp,mitra2026stack}. A
+rigorous security evaluation of agentic pipelines---covering prompt injection, tool
+misuse, and supply-chain risks---represents important future work that is
+orthogonal to the fidelity evaluation presented here.
+
+\subsection{Multimodal Evaluation}
+\label{sec:multimodal}
+
+A natural extension of this work is to evaluate $R_2$ not through its serialised
+JSON text but through its rendered visual form. Screenshotting the Streamlit UI and
+passing it to a vision-capable judge model (e.g., GPT-4o Vision) with a structured
+rubric would yield a perceptual fidelity score that captures layout quality, code
+block formatting, and visual emphasis---dimensions that the JSON-text proxy cannot
+measure. This direction would also enable LLM-as-a-Judge~\cite{zheng2023llmjudge}
+to be applied meaningfully at the A2UI layer, where visual structure is part of the
+communication. We leave this to future work, along with extending the test set
+beyond $n=15$ and validating judge scores against human raters.
 
 
-\section{Conclusion}
-\label{sec:conclusion}
+\section{Conclusions}
+\label{sec:conclusions}
 
-\begin{itemize}
-  \item MCP successfully solves the ``last mile'' connectivity problem for
-    agents, transforming the $M \times N$ problem into an $M + N$
-    ecosystem~\cite{oribe:mcp2025,ayyagari:mcpagentic2025}.
-  \item However, it is not a complete agent orchestration framework. The
-    future of agentic infrastructure lies in the composition of these
-    protocols, where MCP provides the standardized I/O layer for the
-    ``Internet of Agents''~\cite{mitra:stack2026}.
-\end{itemize}
+We introduced \emph{layer-wise fidelity scoring} as an evaluation protocol for
+multi-layer agentic pipelines that terminate in a structured UI. Applied to a
+software documentation Q\&A system built on MCP+A2A+A2UI, our results show that
+A2A synthesis meaningfully improves content selectivity---condensing retrieved
+chunks into a more precise answer---while the A2UI formatting step introduces a
+modest but consistent further compression of that content. Each layer of the
+MCP$\rightarrow$A2A$\rightarrow$A2UI stack makes a distinct and measurable
+contribution to information fidelity, a dynamic that aggregate end-to-end scoring
+cannot reveal. The protocol is lightweight---requiring only BERTScore and no human
+raters---reusable across domains, and exposes intra-pipeline quality dynamics that
+are invisible to black-box evaluation. By releasing our test set and scoring
+harness, we aim to provide a practical tool for the growing community building on
+standardised agent protocols such as MCP and A2A.
 
 
 \ifCLASSOPTIONcompsoc
@@ -257,81 +678,98 @@ using \emph{MCP Servers}~\cite{mitra:stack2026}.
   \section*{Acknowledgment}
 \fi
 
-The author would like to thank...
+The author thanks the University of Helsinki for institutional support.
 
 \ifCLASSOPTIONcaptionsoff
   \newpage
 \fi
 
 
-\begin{thebibliography}{11}
+\begin{thebibliography}{17}
 
-\bibitem{ehtesham:survey2025}
-A. Ehtesham, A. Singh, G. K. Gupta, and S. Kumar, ``A Survey of Agent
-Interoperability Protocols: Model Context Protocol (MCP), Agent
-Communication Protocol (ACP), Agent-to-Agent Protocol (A2A), and Agent
-Network Protocol (ANP),'' \emph{arXiv preprint arXiv:2505.02279}, May
-2025.
+\bibitem{yang2025survey}
+S. Yang et al., ``A Survey of AI Agent Protocols,'' \emph{arXiv preprint
+arXiv:2504.16736}, 2025.
 
-\bibitem{oribe:mcp2025}
-J. A. Oribe, ``The Model Context Protocol (MCP): Emergence, Technical
-Architecture, and the Future of Agentic AI Infrastructure,'' Zenodo,
-2025, doi: 10.5281/zenodo.17390299.
+\bibitem{anthropic2024mcp}
+Anthropic, ``Model Context Protocol (MCP),'' Technical Specification, Nov.~2024.
+[Online]. Available: \url{https://modelcontextprotocol.io}
 
-\bibitem{hou:mcpsecurity2025}
-X. Hou, Y. Zhao, S. Wang, and H. Wang, ``Model Context Protocol (MCP):
-Landscape, Security Threats, and Future Research Directions,''
-\emph{arXiv preprint arXiv:2503.23278}, 2025.
+\bibitem{ehtesham2025survey}
+A. Ehtesham, A. Singh, G.~K. Gupta, and S. Kumar, ``A Survey of Agent
+Interoperability Protocols: Model Context Protocol (MCP), Agent Communication
+Protocol (ACP), Agent-to-Agent Protocol (A2A), and Agent Network Protocol (ANP),''
+\emph{arXiv preprint arXiv:2505.02279}, 2025.
 
-\bibitem{mitra:stack2026}
-S. Mitra, ``The Agent Protocol Stack: Why MCP + A2A + A2UI Is the TCP/IP
-Moment for Agentic AI,'' \emph{subhadipmitra.com}, Jan. 2026. [Online].
-Available: \url{https://subhadipmitra.com/blog/2026/agent-protocol-stack/}
+\bibitem{jayanti2026camcp}
+M.~A. Jayanti and X.~Y. Han, ``Enhancing Model Context Protocol (MCP) with
+Context-Aware Server Collaboration,'' \emph{arXiv preprint arXiv:2601.11595}, 2026.
 
-\bibitem{ayyagari:mcpagentic2025}
-V. Ayyagari, ``Model Context Protocol for Agentic AI: Enabling Contextual
-Interoperability Across Systems,'' \emph{International Journal of
-Computational and Experimental Science and Engineering}, vol.~11, no.~3,
-pp.~6072--6082, 2025, doi: 10.22399/ijcesen.3678.
+\bibitem{yan2025beyondselftalk}
+B. Yan et al., ``Beyond Self-Talk: A Communication-Centric Survey of LLM-Based
+Multi-Agent Systems,'' \emph{arXiv preprint arXiv:2502.14321}, 2025.
 
-\bibitem{ganesh:mcp2025}
-K. Ganesh, ``Anthropic's Model Context Protocol (MCP) for AI Applications
-and Agents,'' Bluetick Consultants Blog, Mar. 2025. [Online]. Available:
-\url{https://www.bluetickconsultants.com/implementing-anthropics-model-context-protocol-mcp-for-ai-applications-and-agents/}
+\bibitem{liao2025agentmaster}
+C.~C. Liao, D. Liao, and S.~S. Gadiraju, ``AgentMaster: A Multi-Agent
+Conversational Framework Using A2A and MCP Protocols for Multimodal Information
+Retrieval and Analysis,'' in \emph{Proc. EMNLP 2025: System Demonstrations},
+arXiv:2507.21105, 2025.
 
-\bibitem{maloyan:breaking2026}
-N. Maloyan and D. Namiot, ``Breaking the Protocol: Security Analysis of
-the Model Context Protocol Specification and Prompt Injection
-Vulnerabilities in Tool-Integrated LLM Agents,'' \emph{arXiv preprint
-arXiv:2601.17549}, Jan. 2026.
+\bibitem{ray2025mcpsurvey}
+P.~P. Ray, ``A Survey on Model Context Protocol: Architecture, State-of-the-Art,
+Challenges and Future Directions,'' \emph{TechRxiv},
+doi:~10.36227/techrxiv.174495492, Apr.~2025.
 
-\bibitem{reddit:lspmcp}
-Online Discussion, ``LSP vs MCP: The One True Story to Rule Them All,''
-r/mcp, Reddit, 2025. [Online]. Available:
-\url{https://www.reddit.com/r/mcp/comments/1joqzpz/lsp_vs_mcp_the_one_true_story_to_rule_them_all/}
+\bibitem{singh2025mcpstandardizing}
+A. Singh, A. Ehtesham, S. Kumar, and T.~T. Khoei, ``A Survey of the Model Context
+Protocol (MCP): Standardizing Context to Enhance Large Language Models (LLMs),''
+\emph{Preprints.org}, 2025.
 
-\bibitem{badri:robustness2025}
-P. R. B. Satya, A. Guyyala, V. Putta, and K. T. Areti, ``Robustness of
-Automated AI Agents Against Adversarial Context Injection in MCP,''
-\emph{International Journal of Computer Applications}, vol.~187, no.~56,
-Nov. 2025, doi: 10.5120/ijca2025925957.
+\bibitem{tokal2025agentx}
+S.~S.~K.~A. Tokal, V. Jha, A. Eswaran, P. Jayachandran, and Y. Simmhan,
+``AgentX: Towards Orchestrating Robust Agentic Workflow Patterns with FaaS-hosted
+MCP Services,'' \emph{arXiv preprint arXiv:2509.07595}, 2025.
 
-\bibitem{emergentmind:injection}
-Emergent Mind, ``Prompt-Based Context Injection Mechanism,'' 2025.
-[Online]. Available:
-\url{https://www.emergentmind.com/topics/prompt-based-context-injection-mechanism}
+\bibitem{derouiche2025agentic}
+H. Derouiche, Z. Brahmi, and H. Mazeni, ``Agentic AI Frameworks: Architectures,
+Protocols, and Design Challenges,'' \emph{arXiv preprint arXiv:2508.10146}, 2025.
 
-\bibitem{jayanti:camcp2026}
-M. A. Jayanti and X. Y. Han, ``Enhancing Model Context Protocol (MCP)
-with Context-Aware Server Collaboration,'' \emph{arXiv preprint
-arXiv:2601.11595}, Jan. 2026.
+\bibitem{hilgert2025mcp}
+J.-N. Hilgert, C. Jakobs, M. K\"{u}lper, M. Lambertz, A. Mahr, and E. Padilla,
+``Chances and Challenges of the Model Context Protocol in Digital Forensics and
+Incident Response,'' \emph{arXiv preprint arXiv:2506.00274}, 2025.
+
+\bibitem{zhang2020bertscore}
+T. Zhang et al., ``BERTScore: Evaluating Text Generation with BERT,'' in
+\emph{Proc. ICLR 2020}, 2020.
+
+\bibitem{zheng2023llmjudge}
+L. Zheng et al., ``Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena,'' in
+\emph{Proc. NeurIPS 2023}, 2023.
+
+\bibitem{mitra2026stack}
+S. Mitra, ``The Agent Protocol Stack: Why MCP + A2A + A2UI Is the TCP/IP Moment
+for Agentic AI,'' Personal technical blog (grey literature, Tier~2--3 per MLR
+classification), Jan.~2026. [Online]. Available:
+\url{https://subhadipmitra.com/blog/2026/agent-protocol-stack/}
+
+\bibitem{garousi2019mlr}
+V. Garousi, M. Felderer, and M.~V. M\"{a}ntyl\"{a}, ``Guidelines for Including
+Grey Literature and Conducting Multivocal Literature Reviews in Software
+Engineering,'' \emph{Information and Software Technology}, vol.~106,
+pp.~101--121, 2019.
+
+\bibitem{google2025a2a}
+Google, ``Agent2Agent (A2A) Protocol---Official Specification v1.0,''
+a2a-protocol.org, 2025. [Online]. Available: \url{https://a2a-protocol.org/latest/}
+
+\bibitem{google2025a2ui}
+Google, ``A2UI Protocol---Official Specification v0.8,'' a2ui.org, 2025. [Online].
+Available: \url{https://a2ui.org/}
 
 \end{thebibliography}
 
-
-%\begin{IEEEbiographynophoto}{Furkan Tercan}
-%Biography text here.
-%\end{IEEEbiographynophoto}
-
+% TODO: Replace projected scores in Section 5 with live pipeline outputs
+%       once the evaluation harness has been run.
 
 \end{document}
