@@ -33,7 +33,7 @@ Given the pace of development in this field, where practitioner knowledge freque
 
 **Agent-to-Agent coordination.** Introduced by Google in April 2025, A2A protocols govern structured message exchange between agents across different frameworks or organisational boundaries [3, 16]. Frameworks such as LangGraph, AutoGen, and Magentic-One implement A2A semantics locally through explicit handoff protocols and role-constrained reasoning [9, 10]. Each inter-agent communication step introduces summarisation, reformulation, or synthesis — all potential fidelity loss points [5]. We treat the A2A agent's synthesised natural-language response (R₁) as a distinct scoreable intermediate, isolating the transformation effect of this layer.
 
-**Agent-to-UI rendering.** A2UI refers to the translation of agent output into structured UI components — cards, tables, code blocks — for human consumption. As the newest layer of the stack, introduced in December 2025 [17], A2UI has received almost no attention in the academic evaluation literature [14]. Unlike RAG or chatbot evaluation, A2UI output is visual and structured; standard NLP metrics do not apply directly. Practitioners have identified cross-layer observability — the ability to trace a user request coherently through A2UI, A2A, and MCP — as a critical unsolved structural gap in current stacks [14]. Our layer-wise fidelity scoring protocol directly addresses the measurement dimension of this gap. We operationalise R₂ by scoring the serialised JSON payload that drives the UI rendering, and discuss multimodal scoring via GPT-4o Vision as a stretch goal (Section 6.6).
+**Agent-to-UI rendering.** A2UI refers to the translation of agent output into structured UI components — cards, tables, code blocks — for human consumption. As the newest layer of the stack, introduced in December 2025 [17], A2UI has received almost no attention in the academic evaluation literature [14]. Unlike RAG or chatbot evaluation, A2UI output is visual and structured; standard NLP metrics do not apply directly. Practitioners have identified cross-layer observability — the ability to trace a user request coherently through A2UI, A2A, and MCP — as a critical unsolved structural gap in current stacks [14]. Our layer-wise fidelity scoring protocol directly addresses the measurement dimension of this gap. We operationalise R₂ by scoring the serialised JSON payload that drives the UI rendering, and discuss multimodal perceptual scoring via GPT-4o Vision as a direction for future work (Section 6.6).
 
 **Evaluation of agentic pipelines.** BERTScore [12] computes contextual token-level F1 using a pretrained language model, handling paraphrase gracefully and correlating well with human judgement. It is our primary metric. LLM-as-a-Judge [13] uses a judge model with a rubric and is strong for open-ended output but harder to reproduce. No prior work applies layer-wise scoring to decompose fidelity across MCP, A2A, and A2UI stages. AgentMaster [6] is the closest system: it jointly employs A2A and MCP and evaluates with BERTScore and G-Eval, but scores only the final output, treating the pipeline as a black box.
 
@@ -67,11 +67,15 @@ User query
 [Streamlit UI] (rendered card)
 ```
 
+![Figure 1. MCP → A2A → A2UI pipeline architecture with layer-wise fidelity capture points](figures/fig1-pipeline-architecture.svg)
+
+_Figure 1. Each layer produces a scoreable intermediate (R₀, R₁, R₂). Dashed amber arrows indicate BERTScore F1 computation against the same ground-truth reference answer. Δ₁ and Δ₂ are the attribution deltas._
+
 ### 3.2 Layer-Wise Fidelity Scoring
 
 **Metric selection.** We select BERTScore F1 [12] as our primary metric for three reasons. First, it handles paraphrase gracefully via contextual embeddings, which is essential here because agent-generated prose will rarely reproduce reference text verbatim. Second, it produces a continuous scalar per query, enabling the delta arithmetic (Δ₁, Δ₂) that is central to our protocol. Third, it requires only a reference answer string — no judge model, no API call, no rubric — making the scoring pipeline fully deterministic and reproducible at temperature 0.
 
-The main alternative, LLM-as-a-Judge [13], was considered but used only as a stretch goal (Section 6.6). While strong for open-ended quality assessment, it introduces non-determinism, API cost, and positional bias, all of which complicate fair layer-wise comparison. ROUGE-L was excluded because it penalises valid paraphrases, making it unsuitable for evaluating agent-generated synthesis where rewording is expected and desirable. Exact match was excluded for the same reason, and additionally because reference answers span 1–3 sentences with no single correct surface form.
+The main alternative, LLM-as-a-Judge [13], was considered but deferred to future work (Section 6.6). While strong for open-ended quality assessment, it introduces non-determinism, API cost, and positional bias, all of which complicate fair layer-wise comparison. ROUGE-L was excluded because it penalises valid paraphrases, making it unsuitable for evaluating agent-generated synthesis where rewording is expected and desirable. Exact match was excluded for the same reason, and additionally because reference answers span 1–3 sentences with no single correct surface form.
 
 Each intermediate is scored against the same human-written reference answer using BERTScore F1 with `roberta-large` as the backbone model. Formally:
 
@@ -83,6 +87,10 @@ Two fidelity deltas are derived:
 
 - **Δ₁ = F1(R₁) − F1(R₀)**: measures the A2A transformation effect. A positive value implies the agent's synthesis improves semantic alignment; a negative value implies drift.
 - **Δ₂ = F1(R₂) − F1(R₁)**: measures the A2UI compression effect. A negative value implies the JSON schema discards relevant content.
+
+![Figure 2. Layer-wise fidelity scoring: three research questions and testable hypotheses](figures/fig2-evaluation-design.svg)
+
+_Figure 2. The three research questions operationalised as layer comparisons, and the three testable hypotheses. Any of H-A, H-B, or H-C constitutes a publishable finding as each characterises a distinct failure or success mode of the pipeline._
 
 ### 3.3 Controlled Variables
 
@@ -155,7 +163,9 @@ These interpretations contrast with what aggregate scoring would reveal. AgentMa
 
 ### 6.2 Implications for Pipeline Design
 
-Layer-wise scoring can function as a diagnostic tool during development. A large Δ₂ signals that the UI schema needs richer fields before the system is deployed; a large negative Δ₁ signals that the agent prompt needs stronger grounding constraints. Designers should treat each layer as holding an independent fidelity budget, rather than assuming that end-to-end quality reflects component-level quality. This aligns with the broader observation in the agent interoperability literature that MCP sits at Stage 1 of a phased adoption roadmap — establishing context retrieval — while A2A adds inter-agent coordination at Stage 2 [3]. Our protocol provides a measurement framework that is sensitive to quality changes at each stage of this roadmap.
+Layer-wise scoring can function as a diagnostic tool during development. A large Δ₂ signals that the UI schema needs richer fields before the system is deployed; a large negative Δ₁ signals that the agent prompt needs stronger grounding constraints. Designers should treat each layer as holding an independent fidelity budget, rather than assuming that end-to-end quality reflects component-level quality.
+
+More fundamentally, our protocol fills a gap that aggregate evaluation cannot: it makes individual protocol layers _accountable_. As the MCP+A2A+A2UI stack matures along the phased adoption roadmap identified by Ehtesham et al. [3] — from MCP for tool access, through A2A for agent coordination, to A2UI for user-facing rendering — each new layer added to a production system introduces a new failure mode that a single terminal score cannot detect. Layer-wise fidelity scoring provides a principled, lightweight instrument for catching these failures at the layer where they originate, making it applicable to any future pipeline that adds new transformation stages above MCP.
 
 More broadly, practitioners have identified three structural gaps in the current MCP+A2A+A2UI stack: the absence of a unified identity model across layers, the lack of cross-layer observability, and undefined error propagation semantics between layers [14]. Layer-wise fidelity scoring directly addresses the observability gap at the information quality dimension: by producing independently interpretable scores at R₀, R₁, and R₂, it gives designers the per-layer signal that current tracing infrastructure cannot provide.
 
@@ -175,11 +185,11 @@ _Reliability:_ The scoring pipeline is fully deterministic at temperature 0 and 
 
 The test set is small (n=15); results may not reach statistical significance and should be interpreted as indicative rather than conclusive. BERTScore on JSON text fields does not capture visual layout quality — a well-structured card may communicate more clearly than its text similarity score implies. The single-domain setting (software documentation) may favour retrieval-heavy pipelines over those that require multi-step reasoning.
 
-This work deliberately scopes out security evaluation of the MCP+A2A pipeline. MCP tool security is an active and serious research area in its own right: a taxonomy of 25 MCP vulnerability categories has been published, empirical work suggests that deploying ten MCP plugins creates a 92% probability of exploitation, and OWASP has released an MCP-specific Top 10 [11]. A rigorous security evaluation of agentic pipelines — covering prompt injection, tool misuse, and supply-chain risks — represents important future work that is orthogonal to the fidelity evaluation presented here.
+This work deliberately scopes out security evaluation of the MCP+A2A pipeline. MCP tool security is an active and serious research area in its own right: a taxonomy of 25 MCP vulnerability categories has been published, empirical work suggests that deploying ten MCP plugins creates a 92% probability of exploitation, and OWASP has released an MCP-specific Top 10 [11, 14]. A rigorous security evaluation of agentic pipelines — covering prompt injection, tool misuse, and supply-chain risks — represents important future work that is orthogonal to the fidelity evaluation presented here.
 
-### 6.6 Stretch Goal: Multimodal Evaluation (Future Work)
+### 6.6 Multimodal Evaluation
 
-Strategy 3 of our evaluation design involves screenshotting the rendered Streamlit UI and passing it to GPT-4o Vision with a rubric: _"does this card correctly and completely answer the question?"_ This would provide a perceptual fidelity score for R₂ that complements the textual BERTScore, capturing layout quality, code block formatting, and visual emphasis — dimensions that the JSON-text proxy cannot measure. We plan this as a follow-up study with a larger test set and human rater validation of the judge scores.
+A natural extension of this work is to evaluate R₂ not through its serialised JSON text but through its rendered visual form. Screenshotting the Streamlit UI and passing it to a vision-capable judge model (e.g., GPT-4o Vision) with a structured rubric would yield a perceptual fidelity score that captures layout quality, code block formatting, and visual emphasis — dimensions that the JSON-text proxy cannot measure. This direction would also enable LLM-as-a-Judge [13] to be applied meaningfully at the A2UI layer, where visual structure is part of the communication. We leave this to future work, along with extending the test set beyond n=15 and validating judge scores against human raters.
 
 ---
 
