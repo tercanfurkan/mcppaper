@@ -123,7 +123,11 @@ We use the httpx Python library documentation as our retrieval corpus, chosen be
 | Agent framework | LangGraph (orchestrator + formatter nodes) |
 | LLM             | `gpt-4o-mini`, temperature 0               |
 | UI              | Streamlit                                  |
-| Scoring         | `bert-score` v0.3.x, `roberta-large`       |
+| Scoring         | `bert-score` v0.3.13, `roberta-large`      |
+
+`gpt-4o-mini` was selected for four reasons. First, it produces fully deterministic outputs at temperature 0, which is essential for reproducibility — any re-run of the evaluation harness must yield identical R₁ and R₂ intermediates. Second, the task is retrieval-grounded Q&A, not complex multi-step reasoning; a capable but lightweight model is appropriate and avoids conflating model capability with pipeline quality. Third, the LLM is a controlled variable rather than the contribution — the paper evaluates the evaluation protocol and pipeline architecture, and any sufficiently capable instruction-following model at temperature 0 should produce comparable relative deltas. Fourth, low per-call cost reduces the barrier to replication. AgentMaster [6], the closest related system, also uses `gpt-4o-mini`, making scores directly comparable.
+
+`text-embedding-3-small` was selected as the embedding model for three reasons. First, it uses the same OpenAI API as the LLM, requiring no additional credentials or services and keeping the setup minimal. Second, its 1536-dimensional embeddings provide sufficient semantic resolution for a focused, single-library technical corpus — the httpx documentation is narrow in domain, so high-dimensional embeddings offer diminishing returns. Third, like the LLM, the embedding model is a controlled variable: it affects R₀ uniformly across all 15 queries, and what matters for the experiment is retrieval consistency rather than maximising retrieval performance.
 
 ---
 
