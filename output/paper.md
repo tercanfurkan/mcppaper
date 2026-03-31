@@ -167,6 +167,8 @@ Our work is most directly comparable to AgentMaster [6], which jointly employs A
 
 The test set is small (n=15); results may not reach statistical significance and should be interpreted as indicative rather than conclusive. BERTScore on JSON text fields does not capture visual layout quality — a well-structured card may communicate more clearly than its text similarity score implies. The single-domain setting (software documentation) may favour retrieval-heavy pipelines over those that require multi-step reasoning.
 
+This work deliberately scopes out security evaluation of the MCP+A2A pipeline. MCP tool security is an active and serious research area in its own right: a taxonomy of 25 MCP vulnerability categories has been published, empirical work suggests that deploying ten MCP plugins creates a 92% probability of exploitation, and OWASP has released an MCP-specific Top 10 [11]. A rigorous security evaluation of agentic pipelines — covering prompt injection, tool misuse, and supply-chain risks — represents important future work that is orthogonal to the fidelity evaluation presented here.
+
 ### 6.6 Stretch Goal: Multimodal Evaluation (Future Work)
 
 Strategy 3 of our evaluation design involves screenshotting the rendered Streamlit UI and passing it to GPT-4o Vision with a rubric: *"does this card correctly and completely answer the question?"* This would provide a perceptual fidelity score for R₂ that complements the textual BERTScore, capturing layout quality, code block formatting, and visual emphasis — dimensions that the JSON-text proxy cannot measure. We plan this as a follow-up study with a larger test set and human rater validation of the judge scores.
@@ -181,32 +183,34 @@ We introduced *layer-wise fidelity scoring* as an evaluation protocol for multi-
 
 ## References
 
-[1] Yang et al. A Survey of AI Agent Protocols. *arXiv:2504.16736*, 2025.
+[1] Yang, S. et al. A Survey of AI Agent Protocols. *arXiv:2504.16736*. Shanghai Jiao Tong University, 2025.
 
-[2] Anthropic. Model Context Protocol (MCP). Technical specification, 2024.
+[2] Anthropic. Model Context Protocol (MCP). Technical specification, November 2024. https://modelcontextprotocol.io
 
-[3] Abul et al. A Survey of the Model Context Protocol (MCP): Standardizing Context to Enhance LLMs. *arXiv*, 2025.
+[3] Ehtesham, A., Singh, A., Gupta, G.K., and Kumar, S. A Survey of Agent Interoperability Protocols: Model Context Protocol (MCP), Agent Communication Protocol (ACP), Agent-to-Agent Protocol (A2A), and Agent Network Protocol (ANP). *arXiv:2505.02279*, 2025.
 
-[4] Abul et al. A Survey of Agent Interoperability Protocols: MCP, ACP, A2A, and ANP. *arXiv:2505.02279*, 2025.
+[4] Jayanti, M.A. and Han, X.Y. Enhancing Model Context Protocol (MCP) with Context-Aware Server Collaboration. *arXiv:2601.11595*, 2026.
 
-[5] Beyond Self-Talk: A Communication-Centric Survey of LLM-Based Multi-Agent Systems. *arXiv:2502.14321*, 2025.
+[5] [Authors TBC]. Beyond Self-Talk: A Communication-Centric Survey of LLM-Based Multi-Agent Systems. *arXiv:2502.14321*, 2025.
 
-[6] [AgentMaster citation — full details to be confirmed from paper].
+[6] Liao, C.C., Liao, D., and Gadiraju, S.S. AgentMaster: A Multi-Agent Conversational Framework Using A2A and MCP Protocols for Multimodal Information Retrieval and Analysis. In *Proceedings of EMNLP 2025: System Demonstrations*. arXiv:2507.21105, 2025.
 
-[7] A Survey on Model Context Protocol: Architecture, State-of-the-Art, Challenges and Future Directions. *TechRxiv*, 2025.
+[7] [Authors TBC]. A Survey on Model Context Protocol: Architecture, State-of-the-Art, Challenges and Future Directions. *TechRxiv*, doi:10.36227/techrxiv.174495492, 2025.
 
-[8] Abul et al. Phased adoption roadmap for agent interoperability. In *arXiv:2505.02279*, 2025.
+[8] [Authors TBC]. A Survey of the Model Context Protocol (MCP): Standardizing Context to Enhance Large Language Models (LLMs). *Preprints.org*, 2025.
 
-[9] Tokal et al. AgentX: Towards Orchestrating Robust Agentic Workflow Patterns with FaaS-hosted MCP Services. *arXiv:2509.07595*, 2025.
+[9] Tokal, S.S.K. et al. AgentX: Towards Orchestrating Robust Agentic Workflow Patterns with FaaS-hosted MCP Services. *arXiv:2509.07595*, 2025.
 
-[10] Agentic AI Frameworks: Architectures, Protocols, and Design Challenges. *arXiv:2508.10146*, 2025.
+[10] [Authors TBC]. Agentic AI Frameworks: Architectures, Protocols, and Design Challenges. *arXiv:2508.10146*, 2025.
 
-[11] Enhancing Model Context Protocol (MCP) with Context-Aware Server Collaboration. *arXiv:2601.11595*, 2025.
+[11] [Authors TBC]. Chances and Challenges of the Model Context Protocol in Digital Forensics and Incident Response. *arXiv:2506.00274*, 2025.
 
-[12] Zhang et al. BERTScore: Evaluating Text Generation with BERT. *ICLR 2020*.
+[12] Zhang, T. et al. BERTScore: Evaluating Text Generation with BERT. In *Proceedings of ICLR 2020*.
 
-[13] Zheng et al. Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. *NeurIPS 2023*.
+[13] Zheng, L. et al. Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena. In *Proceedings of NeurIPS 2023*.
 
-[14] [CA-MCP — arXiv:2601.11595]
-
-> *Note: consolidate [11] and [14] — they are the same paper. Renumber before submission.*
+> *TODO before submission:*
+> *1. Fill in [Authors TBC] entries from paper cover pages.*
+> *2. Reference [11] (Digital Forensics MCP) is not yet cited in the body — add to Introduction or Background if relevant, or remove.*
+> *3. Verify all arXiv papers have been published/accepted at a venue and update accordingly (e.g., AgentX, Beyond Self-Talk).*
+> *4. Check IEEE template citation format requirements and reformat if needed.*
