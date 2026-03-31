@@ -12,3 +12,5 @@ papers/*.pdf
 *.synctex.gz
 *.toc
 main.pdf
+
+.claude
