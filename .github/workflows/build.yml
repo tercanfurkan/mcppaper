@@ -22,13 +22,13 @@ jobs:
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
-          name: paper
+          name: layer_wise_fidelity_evaluation_of_multi_layer_agentic_ai_pipelines
           path: main.pdf
 
       - name: Prepare Pages directory
         run: |
           mkdir _site
-          cp main.pdf _site/
+          cp main.pdf "_site/layer_wise_fidelity_evaluation_of_multi_layer_agentic_ai_pipelines.pdf"
           cp index.html _site/
 
       - name: Deploy PDF to GitHub Pages
