@@ -605,14 +605,19 @@ readers to distinguish condensation effects from information loss. In this
 dataset, the Recall delta ($\Delta_1^R = +0.0103$) confirms that the F1 gain
 reflects genuine selectivity improvement rather than mere truncation.
 
-This work deliberately scopes out security evaluation of the MCP+A2A pipeline. MCP
-tool security is an active and serious research area in its own right: Adversa~AI
-has published a taxonomy of 25~MCP vulnerability
+This work deliberately scopes out security evaluation of the MCP+A2A+A2UI
+pipeline. MCP tool security is an active and serious research area in its own
+right: Adversa~AI has published a taxonomy of 25~MCP vulnerability
 categories~\cite{adversa2025mcptaxonomy}, empirical work suggests that deploying
 ten MCP plugins creates a 92\% probability of
 exploitation~\cite{pynt2025mcprisk}, and OWASP has released an MCP-specific
-Top~10~\cite{owasp2025mcptop10}. A rigorous security evaluation of agentic
-pipelines---covering prompt injection, tool misuse, and supply-chain
+Top~10~\cite{owasp2025mcptop10}. At the A2A layer, Sharma et
+al.~\cite{sharma2025cascading} formalise \emph{Agent Cascading Injection}, in
+which a single compromised agent propagates exploits through inter-agent trust
+chains---a risk that grows with multi-agent orchestration. A2UI security remains
+largely unexplored; the primary concern identified so far is supply-chain risk in
+the UI component catalog~\cite{mitra2026stack}. A rigorous security evaluation of
+agentic pipelines---covering prompt injection, tool misuse, and supply-chain
 risks---represents important future work that is orthogonal to the fidelity
 evaluation presented here.
 
@@ -658,7 +663,7 @@ at \url{https://github.com/tercanfurkan/fidelity-agentic-stack}.
 \fi
 
 
-\begin{thebibliography}{21}
+\begin{thebibliography}{22}
 
 \bibitem{yang2025survey}
 Y.~Yang, H.~Chai, Y.~Song, S.~Qi, M.~Wen, N.~Li, J.~Liao, H.~Hu, J.~Lin,
@@ -719,6 +724,11 @@ Pynt, ``Quantifying Risk Exposure Across 281~MCPs,'' Research Report, 2025.
 \bibitem{owasp2025mcptop10}
 OWASP, ``OWASP MCP Top~10,'' 2025. [Online]. Available:
 \url{https://owasp.org/www-project-mcp-top-10/}
+
+\bibitem{sharma2025cascading}
+G.~Sharma, V.~Kulkarni, M.~King, and K.~Huang, ``Towards Unifying Quantitative
+Security Benchmarking for Multi Agent Systems,'' \emph{arXiv preprint
+arXiv:2507.21146}, 2025.
 
 \bibitem{zhang2020bertscore}
 T.~Zhang, V.~Kishore, F.~Wu, K.~Q.~Weinberger, and Y.~Artzi, ``BERTScore:
