@@ -146,9 +146,10 @@ methodology established for software engineering research~\cite{garousi2019mlr}.
 \noindent\textbf{Model Context Protocol.}
 MCP~\cite{anthropic2024mcp} standardises
 tool-and-resource invocation by LLM agents via a JSON-RPC client-server
-architecture. The protocol defines four core primitives---Tools, Resources,
-Prompts, and Sampling---and separates concerns across a Host (the LLM
-application), Clients (session managers), and Servers (capability
+architecture. The protocol defines three server primitives---Tools, Resources,
+and Prompts---alongside client-side capabilities such as Sampling, and
+separates concerns across a Host (the LLM application), Clients (session
+managers), and Servers (capability
 providers)~\cite{ehtesham2025survey,ray2025mcpsurvey,singh2025mcpstandardizing}.
 This decoupling reduces the fragmentation caused by ad-hoc API integrations and
 enables dynamic tool discovery~\cite{ehtesham2025survey}. From an evaluation
@@ -605,13 +606,15 @@ dataset, the Recall delta ($\Delta_1^R = +0.0103$) confirms that the F1 gain
 reflects genuine selectivity improvement rather than mere truncation.
 
 This work deliberately scopes out security evaluation of the MCP+A2A pipeline. MCP
-tool security is an active and serious research area in its own right: a taxonomy
-of 25 MCP vulnerability categories has been published, empirical work suggests that
-deploying ten MCP plugins creates a 92\% probability of exploitation, and OWASP
-has released an MCP-specific Top~10~\cite{hilgert2025mcp,mitra2026stack}. A
-rigorous security evaluation of agentic pipelines---covering prompt injection, tool
-misuse, and supply-chain risks---represents important future work that is
-orthogonal to the fidelity evaluation presented here.
+tool security is an active and serious research area in its own right: Adversa~AI
+has published a taxonomy of 25~MCP vulnerability
+categories~\cite{adversa2025mcptaxonomy}, empirical work suggests that deploying
+ten MCP plugins creates a 92\% probability of
+exploitation~\cite{pynt2025mcprisk}, and OWASP has released an MCP-specific
+Top~10~\cite{owasp2025mcptop10}. A rigorous security evaluation of agentic
+pipelines---covering prompt injection, tool misuse, and supply-chain
+risks---represents important future work that is orthogonal to the fidelity
+evaluation presented here.
 
 \subsection{Multimodal Evaluation}
 \label{sec:multimodal}
@@ -655,7 +658,7 @@ at \url{https://github.com/tercanfurkan/fidelity-agentic-stack}.
 \fi
 
 
-\begin{thebibliography}{19}
+\begin{thebibliography}{21}
 
 \bibitem{yang2025survey}
 Y.~Yang, H.~Chai, Y.~Song, S.~Qi, M.~Wen, N.~Li, J.~Liao, H.~Hu, J.~Lin,
@@ -689,8 +692,7 @@ arXiv:2507.21105, 2025.
 
 \bibitem{ray2025mcpsurvey}
 P.~P.~Ray, ``A Survey on Model Context Protocol: Architecture, State-of-the-Art,
-Challenges and Future Directions,'' \emph{TechRxiv},
-doi:~10.36227/techrxiv.174495492, Apr.~2025.
+Challenges and Future Directions,'' \emph{TechRxiv preprint}, Apr.~2025.
 
 \bibitem{singh2025mcpstandardizing}
 A.~Singh, A.~Ehtesham, S.~Kumar, and T.~T.~Khoei, ``A Survey of the Model Context
@@ -706,10 +708,17 @@ MCP Services,'' \emph{arXiv preprint arXiv:2509.07595}, 2025.
 H.~Derouiche, Z.~Brahmi, and H.~Mazeni, ``Agentic AI Frameworks: Architectures,
 Protocols, and Design Challenges,'' \emph{arXiv preprint arXiv:2508.10146}, 2025.
 
-\bibitem{hilgert2025mcp}
-J.-N.~Hilgert, C.~Jakobs, M.~K\"{u}lper, M.~Lambertz, A.~Mahr, and E.~Padilla,
-``Chances and Challenges of the Model Context Protocol in Digital Forensics and
-Incident Response,'' \emph{arXiv preprint arXiv:2506.00274}, 2025.
+\bibitem{adversa2025mcptaxonomy}
+Adversa~AI, ``AI Red Teaming for MCP,'' 2025. [Online]. Available:
+\url{https://adversa.ai/ai-red-teaming-mcp/}
+
+\bibitem{pynt2025mcprisk}
+Pynt, ``Quantifying Risk Exposure Across 281~MCPs,'' Research Report, 2025.
+[Online]. Available: \url{https://www.pynt.io}
+
+\bibitem{owasp2025mcptop10}
+OWASP, ``OWASP MCP Top~10,'' 2025. [Online]. Available:
+\url{https://owasp.org/www-project-mcp-top-10/}
 
 \bibitem{zhang2020bertscore}
 T.~Zhang, V.~Kishore, F.~Wu, K.~Q.~Weinberger, and Y.~Artzi, ``BERTScore:
