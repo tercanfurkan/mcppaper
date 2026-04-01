@@ -53,14 +53,12 @@ the same ground-truth reference answer. We instantiate this protocol on a softwa
 documentation Q\&A task using the \texttt{httpx} Python library, building a
 minimal end-to-end prototype comprising an MCP retrieval server, a LangGraph
 A2A orchestrator, and a Streamlit-based rendering layer that simulates A2UI
-structured output. Experiments across 15
-test queries show that A2A synthesis improves BERTScore F1 by
-$+0.039$ ($\Delta_1$), driven by a Precision gain of $+0.069$ while Recall
-remains essentially unchanged ($\Delta_1^R = +0.007$), confirming that
-synthesis improves content selectivity without sacrificing coverage. The A2UI formatting step is near-lossless on F1
-($\Delta_2 = -0.0001$) with only minor Recall compression. These layer-level
-dynamics are invisible to aggregate end-to-end scoring and only emerge through
-layer-wise analysis. Our protocol is task-agnostic and reusable; we release the
+structured output. Experiments across 15 test queries show that A2A synthesis meaningfully improves
+BERTScore F1 ($\Delta_1 = +0.039$) by raising Precision while leaving Recall
+essentially unchanged, confirming that synthesis improves content selectivity
+without sacrificing coverage. The A2UI formatting step is near-lossless on F1
+with only minor Recall compression. These layer-level dynamics are invisible to
+aggregate end-to-end scoring and only emerge through layer-wise analysis. Our protocol is task-agnostic and reusable; we release the
 annotated test set and scoring harness\footnote{%
 \url{https://github.com/tercanfurkan/fidelity-agentic-stack}} to support future
 benchmarking of UI-terminal agentic systems.
@@ -654,14 +652,13 @@ beyond $n=15$ and validating judge scores against human raters.
 We introduced \emph{layer-wise fidelity scoring} as an evaluation protocol for
 multi-layer agentic pipelines that terminate in a structured UI. Applied to a
 software documentation Q\&A system built on MCP+A2A+A2UI, our results show that
-A2A synthesis substantially improves BERTScore F1 ($+0.039$) by raising Precision
-without sacrificing Recall---condensing retrieved chunks into a more precise
-answer while preserving coverage. The A2UI formatting step proves near-lossless
-on F1, with only minor Recall compression. Each layer of the
-MCP$\rightarrow$A2A$\rightarrow$A2UI stack makes a distinct and measurable
-contribution, a dynamic that aggregate end-to-end scoring cannot reveal. The
-protocol is lightweight---requiring only BERTScore and no human raters---reusable
-across domains, and exposes intra-pipeline quality dynamics that are invisible to
+A2A synthesis is the dominant fidelity transition in the pipeline---improving
+answer precision without sacrificing coverage---while the A2UI formatting step
+proves near-lossless. Each layer of the MCP$\rightarrow$A2A$\rightarrow$A2UI
+stack makes a distinct and measurable contribution to information fidelity, a
+dynamic that aggregate end-to-end scoring cannot reveal. The protocol is
+lightweight---requiring only BERTScore and no human raters---reusable across
+domains, and exposes intra-pipeline quality dynamics that are invisible to
 black-box evaluation. By releasing our test set and scoring harness, we aim to
 provide a practical tool for the growing community building on standardised agent
 protocols such as MCP and A2A.
