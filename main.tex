@@ -218,9 +218,9 @@ schema: \texttt{\{summary, key\_points[], code\_example, source\_ref\}}. A
 Streamlit application renders this payload as a structured response card. The
 serialised JSON payload is logged as $R_2$.
 
-\begin{figure}[t]
+\begin{figure*}[t]
   \centering
-  \includegraphics[width=\columnwidth,trim=0 0 0 0,clip]{figures/fig1-pipeline-architecture.png}
+  \includegraphics[width=\textwidth,trim=0 0 0 0,clip]{figures/fig1-pipeline-architecture.png}
   \vspace{-10pt}
   \caption{MCP$\rightarrow$A2A$\rightarrow$A2UI pipeline architecture with
   layer-wise fidelity capture points. Each layer produces a scoreable intermediate
@@ -228,7 +228,7 @@ serialised JSON payload is logged as $R_2$.
   against the same ground-truth reference answer. $\Delta_1$ and $\Delta_2$ are
   the attribution deltas.}
   \label{fig:pipeline}
-\end{figure}
+\end{figure*}
 
 \subsection{Layer-Wise Fidelity Scoring}
 \label{sec:scoring}
@@ -307,15 +307,15 @@ effects:
     $\Delta_2^R$ indicates the JSON schema discards relevant content.
 \end{itemize}
 
-\begin{figure}[t]
+\begin{figure*}[t]
   \centering
-  \includegraphics[width=\columnwidth,trim=0 0 0 0,clip]{figures/fig2-evaluation-design.png}
+  \includegraphics[width=\textwidth,trim=0 0 0 0,clip]{figures/fig2-evaluation-design.png}
   \vspace{-10pt}
   \caption{Layer-wise fidelity scoring: three research questions and testable
   hypotheses. Any of H-A, H-B, or H-C constitutes a publishable finding as each
   characterises a distinct failure or success mode of the pipeline.}
   \label{fig:evaldesign}
-\end{figure}
+\end{figure*}
 
 \subsection{Controlled Variables}
 \label{sec:controlled}
@@ -434,7 +434,8 @@ repository (see Data Availability).
   information loss (see Section~\ref{sec:scoring}).}
   \label{tab:pr}
   \centering
-  \small
+  \footnotesize
+  \setlength{\tabcolsep}{3.5pt}
   \begin{tabular}{lcccccc}
     \toprule
     & $\mathbf{P(R_0)}$ & $\mathbf{R(R_0)}$
