@@ -23,6 +23,3 @@ python3 figures/generate_fig2.py   # Evaluation design
 
 Requires `matplotlib`.
 
-## License
-
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
