@@ -2,6 +2,8 @@
 
 IEEE Computer Society journal paper proposing **layer-wise fidelity scoring** for multi-layer agentic pipelines built on MCP, A2A, and A2UI protocols.
 
+**[Read the paper](https://tercanfurkan.github.io/mcppaper)**
+
 The evaluation prototype, annotated test set (n=30), and scoring harness live in the companion repository: **[fidelity-agentic-stack](https://github.com/tercanfurkan/fidelity-agentic-stack)**.
 
 ## Building
