@@ -58,10 +58,8 @@ BERTScore F1 ($\Delta_1 = +0.039$) by raising Precision while leaving Recall
 essentially unchanged, confirming that synthesis improves content selectivity
 without sacrificing coverage. The A2UI formatting step is near-lossless on F1
 with only minor Recall compression. These layer-level dynamics are invisible to
-aggregate end-to-end scoring and only emerge through layer-wise analysis. Our protocol is task-agnostic and reusable; we release the
-annotated test set and scoring harness\footnote{%
-\url{https://github.com/tercanfurkan/fidelity-agentic-stack}} to support future
-benchmarking of UI-terminal agentic systems.
+aggregate end-to-end scoring and only emerge through layer-wise analysis. Our protocol is task-agnostic and reusable; we release the annotated test set and
+scoring harness to support future benchmarking of UI-terminal agentic systems.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -340,8 +338,7 @@ timeout configuration), error handling, authentication patterns, and method
 signatures. All queries require specific grounded retrieval; parametric LLM
 knowledge is insufficient to answer them correctly without tool access. Reference
 answers are 1--3 sentences extracted or paraphrased from the official
-\texttt{httpx} documentation.\footnote{Queries and reference answers are
-available at \url{https://github.com/tercanfurkan/fidelity-agentic-stack}.}
+\texttt{httpx} documentation.
 
 \subsection{Implementation}
 \label{sec:impl}
@@ -663,6 +660,11 @@ black-box evaluation. By releasing our test set and scoring harness, we aim to
 provide a practical tool for the growing community building on standardised agent
 protocols such as MCP and A2A.
 
+
+\section*{Data Availability}
+
+The annotated test set, scoring harness, and full per-query results are available
+at \url{https://github.com/tercanfurkan/fidelity-agentic-stack}.
 
 \ifCLASSOPTIONcaptionsoff
   \newpage
